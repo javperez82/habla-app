@@ -1,0 +1,117 @@
+[
+  {
+    "id": 1,
+    "title": "Activa tu máximo potencial ahora",
+    "category": "crecimiento",
+    "duration": "11:06 min",
+    "src": "https://rhbyyhciyiacjbmkqbnw.supabase.co/storage/v1/object/public/audio/0001.m4a",
+    "description": "Explora la importancia de la perseverancia, el esfuerzo sostenido y la mentalidad de crecimiento como pilares del éxito por encima del talento innato. A través de las investigaciones de Angela Duckworth y Carol Dweck, se explica que la determinación y la capacidad de ver el fracaso como un proceso de aprendizaje, bajo el concepto de 'todavía no', son esenciales para alcanzar el alto rendimiento.",
+    "tags": ["perseverancia", "esfuerzo sostenido", "mentalidad de crecimiento"],
+    "reflexion": "Piensa en algo que dejaste de intentar porque creíste que no eras suficientemente bueno para ello. ¿Qué pasaría si en lugar de verlo como una limitación, lo vieras como un punto de partida?",
+    "caso": {
+      "titulo": "El caso de Marcos",
+      "historia": "Marcos tiene 34 años y lleva 6 en la misma empresa como analista. Siempre creyó que sus compañeros que ascendían más rápido simplemente eran más inteligentes o tenían más talento natural. Cuando su jefa le ofreció liderar un proyecto nuevo, su primera reacción fue declinar: 'No soy el indicado, hay personas más capaces que yo'.\n\nSin embargo, su jefa insistió y Marcos aceptó con miedo. Durante el proyecto cometió errores, pidió ayuda varias veces y tuvo que rehacer trabajo en dos ocasiones. Al final, el proyecto fue exitoso y Marcos recibió reconocimiento público.\n\nLo que cambió en Marcos no fue su talento, sino su disposición a persistir frente a la incomodidad.",
+      "preguntas": [
+        "¿En qué momento Marcos demostró mentalidad de crecimiento en lugar de mentalidad fija?",
+        "¿Qué habrías hecho tú en su lugar cuando tu jefa te ofreció el proyecto?"
+      ]
+    },
+    "glosario": [
+      {
+        "termino": "Mentalidad de crecimiento",
+        "definicion": "La creencia de que nuestras habilidades pueden desarrollarse con esfuerzo y dedicación. Lo opuesto es creer que el talento es fijo e innato."
+      },
+      {
+        "termino": "Grit (Perseverancia)",
+        "definicion": "Término acuñado por Angela Duckworth. Es la combinación de pasión sostenida y perseverancia hacia metas a largo plazo, independientemente de los obstáculos."
+      },
+      {
+        "termino": "Mentalidad fija",
+        "definicion": "La creencia de que la inteligencia y el talento son rasgos inamovibles con los que se nace. Lleva a evitar desafíos por miedo a demostrar limitaciones."
+      },
+      {
+        "termino": "Todavía no",
+        "definicion": "Concepto de Carol Dweck. Reemplazar 'no puedo' por 'todavía no puedo' cambia el fracaso en una etapa del aprendizaje, no en un veredicto final."
+      }
+    ],
+    "reto": "En la próxima situación donde sientas que no puedes hacer algo, di en voz alta o por escrito: 'Todavía no puedo, pero puedo aprender.' Observa cómo cambia tu disposición ante el reto."
+  },
+  {
+    "id": 2,
+    "title": "Pequeños pasos, grandes resultados",
+    "category": "motivacion",
+    "duration": "8 min",
+    "src": "",
+    "description": "La ciencia del progreso incremental demuestra que el 1% de mejora diaria produce resultados 37 veces mayores al cabo de un año. Analizamos el concepto de kaizen, por qué los grandes objetivos paralizan y cómo diseñar sistemas de avance sostenible.",
+    "tags": ["hábitos", "productividad", "kaizen"],
+    "reflexion": null,
+    "caso": null,
+    "glosario": null,
+    "reto": null
+  },
+  {
+    "id": 3,
+    "title": "Liderar sin autoridad formal",
+    "category": "liderazgo",
+    "duration": "9 min",
+    "src": "",
+    "description": "El liderazgo no nace del cargo: nace de la credibilidad y la capacidad de influir sin imponer. Aprendemos las tres palancas del liderazgo lateral: confianza construida, visión compartida y gestión del conflicto constructivo.",
+    "tags": ["influencia", "credibilidad", "equipos"],
+    "reflexion": null,
+    "caso": null,
+    "glosario": null,
+    "reto": null
+  },
+  {
+    "id": 4,
+    "title": "Confianza psicológica en el equipo",
+    "category": "equipo",
+    "duration": "7 min",
+    "src": "",
+    "description": "El estudio Project Aristotle de Google reveló que el factor número uno de los equipos de alto rendimiento es la seguridad psicológica. Exploramos qué significa y qué comportamientos la construyen día a día.",
+    "tags": ["confianza", "seguridad psicológica", "alto rendimiento"],
+    "reflexion": null,
+    "caso": null,
+    "glosario": null,
+    "reto": null
+  },
+  {
+    "id": 5,
+    "title": "Hablar con seguridad ante otros",
+    "category": "seguridad",
+    "duration": "5 min",
+    "src": "",
+    "description": "El miedo a hablar en público afecta al 75% de las personas. Repasamos técnicas inmediatas: el anclaje físico, la técnica de la pausa y cómo preparar mentalmente cualquier intervención para comunicar con convicción y calma.",
+    "tags": ["asertividad", "oratoria", "comunicación"],
+    "reflexion": null,
+    "caso": null,
+    "glosario": null,
+    "reto": null
+  },
+  {
+    "id": 6,
+    "title": "Hábitos que transforman culturas",
+    "category": "practicas",
+    "duration": "8 min",
+    "src": "",
+    "description": "Las culturas organizacionales no cambian con discursos: cambian con rutinas compartidas. Analizamos tres hábitos colectivos de alto impacto y cómo instalarlos sin resistencia en cualquier entorno laboral.",
+    "tags": ["cultura", "organizaciones", "hábitos"],
+    "reflexion": null,
+    "caso": null,
+    "glosario": null,
+    "reto": null
+  },
+  {
+    "id": 7,
+    "title": "Tu huella, tu responsabilidad",
+    "category": "ambiental",
+    "duration": "6 min",
+    "src": "",
+    "description": "Reflexionamos sobre la huella de carbono individual y colectiva en el entorno laboral, cómo las decisiones cotidianas acumulan impacto y qué acciones concretas podemos adoptar desde hoy.",
+    "tags": ["sostenibilidad", "impacto", "responsabilidad"],
+    "reflexion": null,
+    "caso": null,
+    "glosario": null,
+    "reto": null
+  }
+]
