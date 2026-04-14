@@ -1480,7 +1480,7 @@ async function init(){
   // 3. Cargar episodios desde Supabase
   var { data, error } = await sb
     .from('episodios')
-    .select('*')
+    .select('id,titulo,categoria,duracion,audio_url,descripcion,tags,reflexion,caso_titulo,caso_historia,caso_preguntas,glosario,reto,estado,orden')
     .eq('estado', 'publicado')
     .order('orden', { ascending: true });
 
