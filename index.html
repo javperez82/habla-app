@@ -878,10 +878,6 @@ const CATS = {
   ambiental:   { label:'Ambiental',            color:'var(--c-ambiental)',   bg:'ei-ambiental',   icon:'#icon-ambiental'   },
 };
 
-// ── ESTADO ───────────────────────────────────────
-var EPISODES = [];
-var currentEp=null, isPlaying=false, activeCategory="todos", expandedId=null;
-const audio=document.getElementById('audioEl');
 
 // ══════════════════════════════════════════════════
 // SUPABASE CONFIG
@@ -1511,35 +1507,6 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('/sw.js').catch(function(){});
   });
-}
-
-// ── EPISODIO ALEATORIO ───────────────────────────
-var dailyEp = null;
-
-function pickRandom(exclude){
-  var pool = EPISODES.filter(function(e){ return !exclude || e.id !== exclude.id; });
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-function renderDaily(ep){
-  dailyEp = ep;
-  var cfg = CATS[ep.category];
-
-  var iconEl = document.getElementById('dailyIcon');
-  iconEl.className = 'daily-ep-icon ' + cfg.bg;
-  iconEl.innerHTML = '<svg viewBox="0 0 32 32" style="color:'+cfg.color+'"><use href="'+cfg.icon+'"/></svg>';
-
-  document.getElementById('dailyCategory').textContent = cfg.label;
-  document.getElementById('dailyCategory').style.color = cfg.color;
-  document.getElementById('dailyTitle').textContent    = ep.title;
-  document.getElementById('dailyDesc').textContent     = ep.description;
-  document.getElementById('dailyDuration').textContent = ep.duration;
-  document.getElementById('dailyTag').textContent      = ep.tags[0];
-
-  // indicadores pedagógicos
-  document.getElementById('dailyPedagogy').innerHTML = buildPedagogyBadges(ep);
-
-  updateDailyPlayBtn();
 }
 
 
