@@ -13,6 +13,7 @@
   <link rel="manifest" href="manifest.json"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,600;1,9..144,300&family=Literata:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root {
@@ -60,6 +61,96 @@ header{
 .logo{font-family:'Fraunces',serif;font-size:1.95rem;font-weight:600;letter-spacing:-0.04em;color:var(--ink)}
 .logo em{font-style:italic;color:var(--accent);font-weight:200}
 .header-tag{font-size:.67rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted);border:1px solid var(--border-med);padding:4px 10px;border-radius:100px}
+
+/* ── AUTH BUTTON ── */
+.header-auth{
+  display:flex;align-items:center;gap:6px;
+  background:none;border:1px solid var(--border-med);
+  border-radius:100px;padding:5px 12px 5px 8px;
+  cursor:pointer;transition:all .2s;color:var(--ink-mid);
+  font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500
+}
+.header-auth:hover{background:var(--bg2);color:var(--ink)}
+.header-auth-avatar{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:600
+}
+.header-auth svg{width:14px;height:14px;opacity:.6}
+
+/* ── AUTH MODAL ── */
+.auth-overlay{
+  position:fixed;inset:0;background:rgba(28,26,22,.55);
+  z-index:300;display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;transition:opacity .2s
+}
+.auth-overlay.open{opacity:1;pointer-events:all}
+.auth-card{
+  background:var(--surface);border-radius:20px;
+  width:100%;max-width:360px;padding:28px 24px;
+  box-shadow:0 20px 60px rgba(28,26,22,.2);
+  transform:translateY(12px);transition:transform .25s
+}
+.auth-overlay.open .auth-card{transform:translateY(0)}
+.auth-logo{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;color:var(--ink);letter-spacing:-.03em;margin-bottom:4px}
+.auth-logo em{font-style:italic;color:var(--accent);font-weight:200}
+.auth-subtitle{font-size:.78rem;color:var(--ink-muted);margin-bottom:22px}
+.auth-tabs{display:flex;gap:0;border:1px solid var(--border-med);border-radius:8px;overflow:hidden;margin-bottom:20px}
+.auth-tab{
+  flex:1;padding:8px;font-size:.75rem;font-weight:500;
+  background:none;border:none;cursor:pointer;
+  color:var(--ink-muted);transition:all .15s;font-family:'DM Sans',sans-serif
+}
+.auth-tab.active{background:var(--ink);color:#f5f0e8}
+.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.auth-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-muted)}
+.auth-input{
+  padding:10px 12px;border-radius:8px;
+  border:1px solid var(--border-med);background:var(--bg);
+  color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.85rem;
+  outline:none;transition:border-color .15s
+}
+.auth-input:focus{border-color:var(--accent)}
+.auth-btn{
+  width:100%;padding:11px;border-radius:10px;
+  background:var(--accent);color:#fff;border:none;
+  font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;
+  cursor:pointer;margin-top:6px;transition:background .15s
+}
+.auth-btn:hover{background:#954e26}
+.auth-msg{font-size:.75rem;color:var(--ink-muted);text-align:center;margin-top:12px;min-height:18px}
+.auth-msg.error{color:#c03030}
+.auth-msg.success{color:var(--green)}
+.auth-close{
+  position:absolute;top:14px;right:14px;
+  background:none;border:none;cursor:pointer;
+  color:var(--ink-muted);padding:4px
+}
+.auth-close svg{width:16px;height:16px}
+.auth-user-info{text-align:center;padding:8px 0 16px}
+.auth-user-email{font-size:.82rem;color:var(--ink-mid);margin-bottom:14px}
+.auth-signout{
+  width:100%;padding:10px;border-radius:10px;
+  background:var(--bg2);color:var(--ink-mid);border:1px solid var(--border-med);
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer
+}
+
+/* ── PROGRESO EN TARJETA ── */
+.ep-progress-bar{
+  height:3px;background:var(--border);border-radius:100px;
+  margin:6px 0 0;overflow:hidden
+}
+.ep-progress-fill{
+  height:100%;background:var(--accent);border-radius:100px;
+  transition:width .3s
+}
+.ep-resume-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.6rem;color:var(--accent);font-weight:500;
+  margin-top:3px
+}
+.ep-resume-badge svg{width:9px;height:9px}
 
 /* ── HERO ── */
 .hero{padding:36px 20px 0;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
@@ -481,7 +572,12 @@ header{
 <header>
   <div class="header-inner">
     <div class="logo">ha<em>.</em>bla</div>
-    <div class="header-tag">Habilidades blandas</div>
+    <button class="header-auth" id="headerAuthBtn" onclick="openAuthModal()">
+      <div class="header-auth-avatar" id="headerAvatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span id="headerAuthLabel">Entrar</span>
+    </button>
   </div>
 </header>
 
@@ -684,6 +780,50 @@ header{
   <div class="foot-note">ha.bla · Habilidades blandas en audio</div>
 </main>
 
+<!-- ── AUTH MODAL ── -->
+<div class="auth-overlay" id="authOverlay" onclick="closeAuthOutside(event)">
+  <div class="auth-card" style="position:relative">
+    <button class="auth-close" onclick="closeAuthModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="auth-logo">ha<em>.</em>bla</div>
+    <div class="auth-subtitle" id="authSubtitle">Guarda tu progreso en todos tus dispositivos</div>
+
+    <!-- Logged out view -->
+    <div id="authFormView">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Entrar</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Crear cuenta</button>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Correo electrónico</label>
+        <input class="auth-input" id="authEmail" type="email" placeholder="tu@correo.com"/>
+      </div>
+      <div class="auth-field" id="authNameField" style="display:none">
+        <label class="auth-label">Nombre</label>
+        <input class="auth-input" id="authName" type="text" placeholder="Tu nombre"/>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Contraseña</label>
+        <input class="auth-input" id="authPassword" type="password" placeholder="••••••••"/>
+      </div>
+      <button class="auth-btn" id="authSubmitBtn" onclick="handleAuth()">Entrar</button>
+      <div class="auth-msg" id="authMsg"></div>
+    </div>
+
+    <!-- Logged in view -->
+    <div id="authUserView" style="display:none">
+      <div class="auth-user-info">
+        <div class="header-auth-avatar" style="width:48px;height:48px;font-size:1.1rem;margin:0 auto 10px">
+          <span id="authAvatarLetter">?</span>
+        </div>
+        <div class="auth-user-email" id="authUserEmail"></div>
+      </div>
+      <button class="auth-signout" onclick="handleSignOut()">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── PLAYER ── -->
 <div class="mini-player" id="miniPlayer">
   <div class="player-card">
@@ -743,24 +883,634 @@ var EPISODES = [];
 var currentEp=null, isPlaying=false, activeCategory="todos", expandedId=null;
 const audio=document.getElementById('audioEl');
 
-// ── INDICADORES PEDAGÓGICOS ──────────────────────
-// Íconos SVG miniaturas para mostrar qué capas tiene cada episodio
+// ══════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════════════
+const SUPA_URL = 'https://rhbyyhciyiacjbmkqbnw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoYnl5aGNpeWlhY2pibWtxYm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTUwMTgsImV4cCI6MjA5MTY3MTAxOH0.jqJnsG1umJwR2VmSPfQZAd2rrKwAXu0JC2GdoZGh4bE';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── ESTADO GLOBAL ─────────────────────────────────
+var EPISODES = [];
+var currentEp = null, isPlaying = false;
+var activeCategory = 'todos', expandedId = null;
+var currentUser = null;
+var progresoCache = {}; // { epId: { posicion, completado } }
+var saveInterval = null;
+const audio = document.getElementById('audioEl');
+
+// ══════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════
+var authMode = 'login';
+
+function openAuthModal(){
+  document.getElementById('authOverlay').classList.add('open');
+  document.getElementById('authMsg').textContent = '';
+}
+function closeAuthModal(){
+  document.getElementById('authOverlay').classList.remove('open');
+}
+function closeAuthOutside(e){
+  if(e.target === document.getElementById('authOverlay')) closeAuthModal();
+}
+function switchAuthTab(mode){
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode==='login');
+  document.getElementById('tabRegister').classList.toggle('active', mode==='register');
+  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'Entrar' : 'Crear cuenta';
+  document.getElementById('authNameField').style.display = mode==='register' ? 'flex' : 'none';
+  document.getElementById('authMsg').textContent = '';
+}
+
+async function handleAuth(){
+  var email = document.getElementById('authEmail').value.trim();
+  var pass  = document.getElementById('authPassword').value;
+  var msg   = document.getElementById('authMsg');
+  if(!email || !pass){ msg.className='auth-msg error'; msg.textContent='Completa todos los campos.'; return; }
+  msg.className='auth-msg'; msg.textContent='Un momento...';
+
+  var result;
+  if(authMode === 'login'){
+    result = await sb.auth.signInWithPassword({ email, password: pass });
+  } else {
+    var name = document.getElementById('authName').value.trim();
+    result = await sb.auth.signUp({ email, password: pass, options:{ data:{ nombre: name } } });
+  }
+
+  if(result.error){
+    msg.className='auth-msg error';
+    msg.textContent = result.error.message.includes('Invalid') ? 'Correo o contraseña incorrectos.' : result.error.message;
+    return;
+  }
+
+  if(authMode === 'register' && !result.data.session){
+    msg.className='auth-msg success';
+    msg.textContent = 'Revisa tu correo para confirmar tu cuenta.';
+    return;
+  }
+
+  closeAuthModal();
+}
+
+async function handleSignOut(){
+  await sb.auth.signOut();
+  closeAuthModal();
+}
+
+function updateAuthUI(user){
+  currentUser = user;
+  var btn    = document.getElementById('headerAuthBtn');
+  var avatar = document.getElementById('headerAvatar');
+  var label  = document.getElementById('headerAuthLabel');
+
+  if(user){
+    var inicial = (user.user_metadata?.nombre || user.email || '?')[0].toUpperCase();
+    avatar.textContent = inicial;
+    avatar.style.background = 'var(--accent)';
+    label.textContent = user.user_metadata?.nombre || user.email.split('@')[0];
+    document.getElementById('authFormView').style.display = 'none';
+    document.getElementById('authUserView').style.display = 'block';
+    document.getElementById('authAvatarLetter').textContent = inicial;
+    document.getElementById('authUserEmail').textContent = user.email;
+  } else {
+    avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    avatar.style.background = 'var(--accent)';
+    label.textContent = 'Entrar';
+    document.getElementById('authFormView').style.display = 'block';
+    document.getElementById('authUserView').style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// PROGRESO — guardar y restaurar posición
+// ══════════════════════════════════════════════════
+var LS_KEY = 'habla_progreso';
+
+function getProgresoLocal(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function setProgresoLocal(epId, posicion, completado){
+  var data = getProgresoLocal();
+  data[epId] = { posicion, completado: completado || false, ts: Date.now() };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+async function getProgresoRemoto(){
+  if(!currentUser) return {};
+  var { data } = await sb.from('progreso').select('episodio_id,posicion,completado').eq('user_id', currentUser.id);
+  var map = {};
+  (data||[]).forEach(function(r){ map[r.episodio_id] = { posicion: r.posicion, completado: r.completado }; });
+  return map;
+}
+
+async function saveProgreso(epId, posicion, completado){
+  setProgresoLocal(epId, posicion, completado);
+  if(!currentUser) return;
+  await sb.from('progreso').upsert({
+    user_id: currentUser.id,
+    episodio_id: epId,
+    posicion,
+    completado: completado || false,
+    actualizado_en: new Date().toISOString()
+  }, { onConflict: 'user_id,episodio_id' });
+}
+
+async function saveHistorial(epId){
+  if(!currentUser) return;
+  await sb.from('historial').insert({ user_id: currentUser.id, episodio_id: epId });
+}
+
+async function saveCapaVista(epId, capa){
+  setProgresoLocal('capa_'+epId+'_'+capa, 1, false);
+  if(!currentUser) return;
+  await sb.from('capas_vistas').upsert({
+    user_id: currentUser.id, episodio_id: epId, capa
+  }, { onConflict: 'user_id,episodio_id,capa' }).select();
+}
+
+function getProgresoEp(epId){
+  // Primero cache remoto, luego local
+  if(progresoCache[epId]) return progresoCache[epId];
+  var local = getProgresoLocal();
+  return local[epId] || null;
+}
+
+function startProgressSave(){
+  if(saveInterval) clearInterval(saveInterval);
+  saveInterval = setInterval(function(){
+    if(!currentEp || !isPlaying) return;
+    var pos = currentEp.src ? audio.currentTime : simSeconds;
+    saveProgreso(currentEp.id, pos, false);
+  }, 10000); // cada 10 segundos
+}
+
+function stopProgressSave(){
+  if(saveInterval){ clearInterval(saveInterval); saveInterval = null; }
+}
+
+// ══════════════════════════════════════════════════
+// INDICADORES PEDAGÓGICOS
+// ══════════════════════════════════════════════════
 var PEDAGOGY_ICONS = {
-  reflexion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Reflexión"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-  caso:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Caso"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8v4h8V3z"/></svg>',
-  glosario:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Glosario"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-  reto:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Reto"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+  reflexion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  caso:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8v4h8V3z"/></svg>',
+  glosario:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  reto:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
 };
 
 function buildPedagogyBadges(ep){
   var badges = '';
   var layers = ['reflexion','caso','glosario','reto'];
   layers.forEach(function(key){
-    if(ep[key]){
+    var hasContent = key === 'caso' ? !!ep.caso_titulo : !!ep[key];
+    if(hasContent){
       badges += '<span class="ep-pedagogy-badge" title="'+key+'">'+ PEDAGOGY_ICONS[key] +'</span>';
     }
   });
   return badges ? '<div class="ep-pedagogy-indicators">' + badges + '</div>' : '';
+}
+
+// ══════════════════════════════════════════════════
+// EPISODIO ALEATORIO
+// ══════════════════════════════════════════════════
+var dailyEp = null;
+
+function pickRandom(exclude){
+  var pool = EPISODES.filter(function(e){ return !exclude || e.id !== exclude.id; });
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function renderDaily(ep){
+  dailyEp = ep;
+  var cfg = CATS[ep.categoria || ep.category];
+  var icon = cfg.icon;
+  var color = cfg.color;
+  var bg = cfg.bg;
+
+  var iconEl = document.getElementById('dailyIcon');
+  iconEl.className = 'daily-ep-icon ' + bg;
+  iconEl.innerHTML = '<svg viewBox="0 0 32 32" style="color:'+color+'"><use href="'+icon+'"/></svg>';
+
+  document.getElementById('dailyCategory').textContent = cfg.label;
+  document.getElementById('dailyCategory').style.color = color;
+  document.getElementById('dailyTitle').textContent    = ep.titulo || ep.title;
+  document.getElementById('dailyDesc').textContent     = ep.descripcion || ep.description;
+  document.getElementById('dailyDuration').textContent = ep.duracion || ep.duration;
+  var tags = ep.tags || [];
+  document.getElementById('dailyTag').textContent = tags[0] || '';
+  document.getElementById('dailyPedagogy').innerHTML = buildPedagogyBadges(ep);
+  updateDailyPlayBtn();
+}
+
+function updateDailyPlayBtn(){
+  var btn = document.getElementById('dailyPlayBtn');
+  var isThisPlaying = currentEp && currentEp.id === (dailyEp && dailyEp.id) && isPlaying;
+  btn.className = 'daily-play-btn' + (isThisPlaying ? ' playing' : '');
+  btn.innerHTML = isThisPlaying
+    ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>';
+}
+
+// ══════════════════════════════════════════════════
+// RENDER EPISODIOS
+// ══════════════════════════════════════════════════
+function buildPedagogyPanel(ep, isExpanded){
+  if(!isExpanded) return '';
+  var iconDesc   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>';
+  var iconReflex = PEDAGOGY_ICONS.reflexion;
+  var iconCaso   = PEDAGOGY_ICONS.caso;
+  var iconGlos   = PEDAGOGY_ICONS.glosario;
+  var iconReto   = PEDAGOGY_ICONS.reto;
+
+  var desc = ep.descripcion || ep.description || '';
+  var tags = (ep.tags||[]).map(function(t){ return '<span class="ep-tag">#'+t+'</span>'; }).join('');
+
+  var panelDesc = '<div class="ep-panel ep-panel-desc active" data-panel="desc">'
+    +'<div class="ep-desc-label">Sobre este episodio</div>'
+    +'<p class="ep-desc-text">'+desc+'</p>'
+    +'<div class="ep-desc-tags">'+tags+'</div></div>';
+
+  var panelReflex = '<div class="ep-panel" data-panel="reflexion">';
+  if(ep.reflexion){ panelReflex += '<div class="ep-reflexion-box"><div class="ep-reflexion-label">Pregunta de reflexión</div><p class="ep-reflexion-text">'+ep.reflexion+'</p></div>'; }
+  else { panelReflex += '<div class="ep-reto-coming">Próximamente...</div>'; }
+  panelReflex += '</div>';
+
+  var casoTitulo   = ep.caso_titulo   || (ep.caso && ep.caso.titulo)   || '';
+  var casoHistoria = ep.caso_historia || (ep.caso && ep.caso.historia) || '';
+  var casoPregs    = ep.caso_preguntas|| (ep.caso && ep.caso.preguntas)|| [];
+  var panelCaso = '<div class="ep-panel" data-panel="caso">';
+  if(casoTitulo){
+    panelCaso += '<div class="ep-caso-titulo">'+casoTitulo+'</div>'
+      +'<div class="ep-caso-historia">'+casoHistoria+'</div>'
+      +'<div class="ep-caso-preguntas-label">Reflexiona</div>'
+      + casoPregs.map(function(q,i){ return '<div class="ep-caso-pregunta"><span class="ep-caso-num">'+(i+1)+'</span><span>'+q+'</span></div>'; }).join('');
+  } else { panelCaso += '<div class="ep-reto-coming">Próximamente...</div>'; }
+  panelCaso += '</div>';
+
+  var glosData = ep.glosario || [];
+  var panelGlos = '<div class="ep-panel" data-panel="glosario">';
+  if(glosData.length){
+    panelGlos += glosData.map(function(g){ return '<div class="ep-glosario-item"><div class="ep-glosario-termino">'+g.termino+'</div><div class="ep-glosario-def">'+g.definicion+'</div></div>'; }).join('');
+  } else { panelGlos += '<div class="ep-reto-coming">Próximamente...</div>'; }
+  panelGlos += '</div>';
+
+  var panelReto = '<div class="ep-panel" data-panel="reto">';
+  if(ep.reto){
+    panelReto += '<div class="ep-reto-box"><div class="ep-reto-header"><div class="ep-reto-icon">'+iconReto+'</div><div><div class="ep-reto-label">Reto de 24 horas</div><div class="ep-reto-sublabel">Una acción concreta para hoy</div></div></div><p class="ep-reto-text">'+ep.reto+'</p></div>';
+  } else { panelReto += '<div class="ep-reto-coming">Próximamente...</div>'; }
+  panelReto += '</div>';
+
+  return '<div class="ep-desc-wrap open">'
+    +'<div class="ep-tabs">'
+    +'<button class="ep-tab active" data-tab="desc">'+iconDesc+'Episodio</button>'
+    +'<button class="ep-tab" data-tab="reflexion">'+iconReflex+'Reflexión</button>'
+    +'<button class="ep-tab" data-tab="caso">'+iconCaso+'Caso</button>'
+    +'<button class="ep-tab" data-tab="glosario">'+iconGlos+'Glosario</button>'
+    +'<button class="ep-tab" data-tab="reto">'+iconReto+'Reto</button>'
+    +'</div>'
+    +'<div class="ep-tab-panels">'+panelDesc+panelReflex+panelCaso+panelGlos+panelReto+'</div>'
+    +'</div>';
+}
+
+function renderEpisodes(cat){
+  var list = document.getElementById('episodeList');
+  var filtered = cat === 'todos' ? EPISODES : EPISODES.filter(function(e){ return (e.categoria||e.category) === cat; });
+  list.innerHTML = '';
+  if(!filtered.length){
+    list.innerHTML = '<div class="coming-soon">Próximamente más episodios en esta categoría...</div>';
+    return;
+  }
+  filtered.forEach(function(ep){
+    var catKey = ep.categoria || ep.category;
+    var cfg    = CATS[catKey];
+    var isActive   = currentEp && currentEp.id === ep.id;
+    var isExpanded = expandedId === ep.id;
+    var nowPlay    = isActive && isPlaying;
+    var titulo     = ep.titulo || ep.title;
+    var duracion   = ep.duracion || ep.duration;
+    var tags       = ep.tags || [];
+    var progreso   = getProgresoEp(ep.id);
+    var pct        = 0;
+    var hasProgreso = false;
+
+    if(progreso && progreso.posicion > 5){
+      var totalSecs = parseDuration(duracion);
+      pct = totalSecs > 0 ? Math.min(100, Math.round(progreso.posicion / totalSecs * 100)) : 0;
+      hasProgreso = pct > 2 && pct < 98;
+    }
+
+    var card = document.createElement('div');
+    card.className = 'episode-card' + (isActive ? ' active-card' : '');
+    card.innerHTML =
+      '<div class="ep-main">'
+      +'<div class="ep-icon-wrap '+cfg.bg+'">'
+      +'<svg viewBox="0 0 32 32" style="color:'+cfg.color+'"><use href="'+cfg.icon+'"/></svg>'
+      +'</div>'
+      +'<div class="ep-info">'
+      +'<div class="ep-category '+cfg.bg+'">'+cfg.label+'</div>'
+      +'<div class="ep-title">'+titulo+'</div>'
+      +'<div class="ep-meta"><span>'+duracion+'</span><span class="ep-dot"></span><span>'+(tags[0]||'')+'</span></div>'
+      + (hasProgreso ? '<div class="ep-progress-bar"><div class="ep-progress-fill" style="width:'+pct+'%"></div></div>'
+          +'<div class="ep-resume-badge"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>Continuar · '+pct+'%</div>' : '')
+      + buildPedagogyBadges(ep)
+      +'</div>'
+      +'<div class="ep-actions">'
+      +'<button class="ep-expand-btn'+(isExpanded?' open':'')+'">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+      +'</button>'
+      +'<button class="ep-play-btn'+(nowPlay?' playing':'')+'">'
+      +(nowPlay
+        ?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>'
+        :'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>')
+      +'</button>'
+      +'</div>'
+      +'</div>'
+      + buildPedagogyPanel(ep, isExpanded);
+
+    card.querySelector('.ep-expand-btn').addEventListener('click', function(e){
+      e.stopPropagation();
+      expandedId = (expandedId === ep.id) ? null : ep.id;
+      renderEpisodes(activeCategory);
+    });
+    card.querySelector('.ep-play-btn').addEventListener('click', function(e){
+      e.stopPropagation(); loadEpisode(ep);
+    });
+    card.querySelector('.ep-main').addEventListener('click', function(){ loadEpisode(ep); });
+
+    if(isExpanded){
+      card.querySelectorAll('.ep-tab').forEach(function(tab){
+        tab.addEventListener('click', function(e){
+          e.stopPropagation();
+          var target = tab.getAttribute('data-tab');
+          card.querySelectorAll('.ep-tab').forEach(function(t){ t.classList.remove('active'); });
+          card.querySelectorAll('.ep-panel').forEach(function(p){ p.classList.remove('active'); });
+          tab.classList.add('active');
+          card.querySelector('[data-panel="'+target+'"]').classList.add('active');
+          // guardar capa vista
+          if(target !== 'desc') saveCapaVista(ep.id, target);
+        });
+      });
+    }
+
+    list.appendChild(card);
+  });
+}
+
+function parseDuration(str){
+  if(!str) return 0;
+  var match = str.match(/(\d+):(\d+)/);
+  if(match) return parseInt(match[1])*60 + parseInt(match[2]);
+  var mins = parseFloat(str);
+  return isNaN(mins) ? 0 : mins * 60;
+}
+
+// ── RENDER CATEGORÍAS GRID ────────────────────────
+function updateCatGrid(cat){
+  document.querySelectorAll('.cat-grid-item').forEach(function(el){
+    el.classList.toggle('active-cat', el.dataset.cat === cat);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// LOAD EPISODIO
+// ══════════════════════════════════════════════════
+function loadEpisode(ep){
+  if(currentEp && currentEp.id === ep.id){ togglePlay(); return; }
+
+  // Guardar posición del episodio anterior
+  if(currentEp){
+    var pos = currentEp.src ? audio.currentTime : simSeconds;
+    saveProgreso(currentEp.id, pos, false);
+  }
+
+  currentEp = ep;
+  var cfg = CATS[ep.categoria || ep.category];
+  var pi  = document.getElementById('playerIcon');
+  pi.className = 'player-ep-icon ' + cfg.bg;
+  document.getElementById('playerIconSvg').style.color = cfg.color;
+  document.getElementById('playerIconSvg').querySelector('use').setAttribute('href', cfg.icon);
+  document.getElementById('playerCategory').textContent = cfg.label;
+  document.getElementById('playerCategory').style.color = cfg.color;
+  document.getElementById('playerTitle').textContent = ep.titulo || ep.title;
+  document.getElementById('miniPlayer').classList.add('visible');
+
+  var src = ep.audio_url || ep.src || '';
+  if(src){
+    audio.pause();
+    audio.src = src;
+    audio.load();
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('timeElapsed').textContent = '0:00';
+    document.getElementById('timeTotal').textContent   = '0:00';
+
+    // Restaurar posición guardada
+    var prog = getProgresoEp(ep.id);
+    audio.addEventListener('loadedmetadata', function restorePos(){
+      if(prog && prog.posicion > 5 && !prog.completado){
+        audio.currentTime = prog.posicion;
+      }
+      audio.removeEventListener('loadedmetadata', restorePos);
+    });
+
+    var playPromise = audio.play();
+    if(playPromise !== undefined){
+      playPromise.then(function(){
+        isPlaying = true; updatePlayUI();
+        startProgressSave();
+        saveHistorial(ep.id);
+        renderEpisodes(activeCategory);
+      }).catch(function(err){
+        console.warn('Autoplay bloqueado:', err);
+        isPlaying = false; updatePlayUI(); renderEpisodes(activeCategory);
+      });
+    } else {
+      isPlaying = true; updatePlayUI(); startProgressSave();
+      renderEpisodes(activeCategory);
+    }
+    return;
+  } else {
+    // Simulación sin audio real
+    var prog2 = getProgresoEp(ep.id);
+    simSeconds = (prog2 && prog2.posicion) ? prog2.posicion : 0;
+    isPlaying = true; updatePlayUI(); simulateProgress();
+    startProgressSave();
+  }
+  renderEpisodes(activeCategory);
+}
+
+function togglePlay(){
+  if(!currentEp) return;
+  var src = currentEp.audio_url || currentEp.src || '';
+  if(src){
+    if(isPlaying){
+      audio.pause();
+      isPlaying = false;
+      stopProgressSave();
+      saveProgreso(currentEp.id, audio.currentTime, false);
+      updatePlayUI(); renderEpisodes(activeCategory);
+    } else {
+      var p = audio.play();
+      if(p !== undefined){
+        p.then(function(){ isPlaying=true; updatePlayUI(); startProgressSave(); renderEpisodes(activeCategory); })
+         .catch(function(){ isPlaying=false; updatePlayUI(); });
+      } else { isPlaying=true; updatePlayUI(); startProgressSave(); renderEpisodes(activeCategory); }
+    }
+    return;
+  }
+  isPlaying = !isPlaying;
+  if(isPlaying){ simulateProgress(); startProgressSave(); }
+  else stopProgressSave();
+  updatePlayUI(); renderEpisodes(activeCategory);
+}
+
+function updatePlayUI(){
+  document.getElementById('iconPlay').style.display  = isPlaying ? 'none'  : 'block';
+  document.getElementById('iconPause').style.display = isPlaying ? 'block' : 'none';
+  document.getElementById('waveBars').classList.toggle('paused', !isPlaying);
+  updateDailyPlayBtn();
+}
+
+var simInterval = null, simSeconds = 0;
+var simTotal = 360;
+function simulateProgress(){
+  clearInterval(simInterval);
+  document.getElementById('timeTotal').textContent = fmt(simTotal);
+  simInterval = setInterval(function(){
+    if(!isPlaying) return;
+    simSeconds = Math.min(simSeconds+1, simTotal);
+    document.getElementById('progressBar').style.width = (simSeconds/simTotal*100)+'%';
+    document.getElementById('timeElapsed').textContent = fmt(simSeconds);
+    if(simSeconds >= simTotal){
+      clearInterval(simInterval);
+      isPlaying = false; updatePlayUI();
+      if(currentEp) saveProgreso(currentEp.id, simTotal, true);
+    }
+  }, 1000);
+}
+function fmt(s){ return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0'); }
+
+audio.addEventListener('timeupdate', function(){
+  if(!audio.duration) return;
+  var p = audio.currentTime/audio.duration*100;
+  document.getElementById('progressBar').style.width = p+'%';
+  document.getElementById('timeElapsed').textContent = fmt(Math.floor(audio.currentTime));
+  document.getElementById('timeTotal').textContent   = fmt(Math.floor(audio.duration));
+});
+
+audio.addEventListener('ended', function(){
+  isPlaying = false; updatePlayUI();
+  stopProgressSave();
+  if(currentEp) saveProgreso(currentEp.id, audio.duration, true);
+  renderEpisodes(activeCategory);
+});
+
+document.getElementById('btnPlayMain').addEventListener('click', togglePlay);
+document.getElementById('btnSkipBack').addEventListener('click', function(){
+  var src = currentEp && (currentEp.audio_url || currentEp.src);
+  if(src) audio.currentTime = Math.max(0, audio.currentTime-15);
+  else simSeconds = Math.max(0, simSeconds-15);
+});
+document.getElementById('btnSkipFwd').addEventListener('click', function(){
+  var src = currentEp && (currentEp.audio_url || currentEp.src);
+  if(src) audio.currentTime = Math.min(audio.duration, audio.currentTime+15);
+  else simSeconds = Math.min(simTotal, simSeconds+15);
+});
+document.getElementById('progressBarOuter').addEventListener('click', function(e){
+  var p = (e.clientX - e.currentTarget.getBoundingClientRect().left) / e.currentTarget.offsetWidth;
+  var src = currentEp && (currentEp.audio_url || currentEp.src);
+  if(src && audio.duration) audio.currentTime = p * audio.duration;
+  else simSeconds = Math.floor(p * simTotal);
+  document.getElementById('progressBar').style.width = (p*100)+'%';
+});
+
+// ── DAILY CARD ────────────────────────────────────
+document.getElementById('dailyCard').addEventListener('click', function(){ if(dailyEp) loadEpisode(dailyEp); });
+document.getElementById('dailyPlayBtn').addEventListener('click', function(e){ e.stopPropagation(); if(dailyEp) loadEpisode(dailyEp); });
+document.getElementById('dailyShuffle').addEventListener('click', function(e){ e.stopPropagation(); renderDaily(pickRandom(dailyEp)); });
+
+// ── CATEGORÍAS ────────────────────────────────────
+document.querySelectorAll('.cat-grid-item').forEach(function(item){
+  item.addEventListener('click', function(){
+    activeCategory = item.dataset.cat;
+    updateCatGrid(activeCategory);
+    renderEpisodes(activeCategory);
+    document.querySelector('.section-label').scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+// ── PWA ───────────────────────────────────────────
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBanner').classList.remove('hidden');
+});
+document.getElementById('installBtn').addEventListener('click', async function(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  var res = await deferredPrompt.userChoice;
+  if(res.outcome === 'accepted') document.getElementById('installBanner').classList.add('hidden');
+  deferredPrompt = null;
+});
+window.addEventListener('appinstalled', function(){ document.getElementById('installBanner').classList.add('hidden'); });
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+async function init(){
+  // 1. Auth listener
+  sb.auth.onAuthStateChange(async function(event, session){
+    var user = session ? session.user : null;
+    updateAuthUI(user);
+    if(user){
+      // Cargar progreso remoto al iniciar sesión
+      progresoCache = await getProgresoRemoto();
+      renderEpisodes(activeCategory);
+    }
+  });
+
+  // 2. Sesión actual
+  var { data: { session } } = await sb.auth.getSession();
+  if(session){
+    updateAuthUI(session.user);
+    progresoCache = await getProgresoRemoto();
+  }
+
+  // 3. Cargar episodios desde Supabase
+  var { data, error } = await sb
+    .from('episodios')
+    .select('*')
+    .eq('estado', 'publicado')
+    .order('orden', { ascending: true });
+
+  if(error || !data || !data.length){
+    // Fallback a episodios.json
+    fetch('episodios.json')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        EPISODES = d;
+        var nums = document.querySelectorAll('.stat-num');
+        if(nums[1]) nums[1].textContent = EPISODES.length;
+        renderEpisodes('todos');
+        if(EPISODES.length) renderDaily(pickRandom(null));
+      });
+    return;
+  }
+
+  EPISODES = data;
+  var nums = document.querySelectorAll('.stat-num');
+  if(nums[1]) nums[1].textContent = EPISODES.length;
+  renderEpisodes('todos');
+  if(EPISODES.length) renderDaily(pickRandom(null));
+}
+
+init();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
 }
 
 // ── EPISODIO ALEATORIO ───────────────────────────
@@ -792,354 +1542,7 @@ function renderDaily(ep){
   updateDailyPlayBtn();
 }
 
-function updateDailyPlayBtn(){
-  var btn = document.getElementById('dailyPlayBtn');
-  var isThisPlaying = currentEp && currentEp.id === (dailyEp && dailyEp.id) && isPlaying;
-  btn.className = 'daily-play-btn' + (isThisPlaying ? ' playing' : '');
-  btn.innerHTML = isThisPlaying
-    ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>'
-    : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>';
-}
 
-// ── HELPERS PEDAGÓGICOS ──────────────────────────
-function buildPedagogyPanel(ep, isExpanded){
-  if(!isExpanded) return '';
-
-  var hasPedagogy = ep.reflexion || ep.caso || ep.glosario || ep.reto;
-
-  // Tab icons SVG
-  var iconDesc   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>';
-  var iconReflex = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-  var iconCaso   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8v4h8V3z"/></svg>';
-  var iconGlos   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
-  var iconReto   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-
-  // Panel: descripción
-  var panelDesc = '<div class="ep-panel ep-panel-desc active" data-panel="desc">'
-    + '<div class="ep-desc-label">Sobre este episodio</div>'
-    + '<p class="ep-desc-text">' + ep.description + '</p>'
-    + '<div class="ep-desc-tags">' + ep.tags.map(function(t){return '<span class="ep-tag">#'+t+'</span>';}).join('') + '</div>'
-    + '</div>';
-
-  // Panel: reflexión
-  var panelReflex = '<div class="ep-panel" data-panel="reflexion">';
-  if(ep.reflexion){
-    panelReflex += '<div class="ep-reflexion-box">'
-      + '<div class="ep-reflexion-label">Pregunta de reflexión</div>'
-      + '<p class="ep-reflexion-text">' + ep.reflexion + '</p>'
-      + '</div>';
-  } else {
-    panelReflex += '<div class="ep-reto-coming">Próximamente...</div>';
-  }
-  panelReflex += '</div>';
-
-  // Panel: caso
-  var panelCaso = '<div class="ep-panel" data-panel="caso">';
-  if(ep.caso){
-    panelCaso += '<div class="ep-caso-titulo">' + ep.caso.titulo + '</div>'
-      + '<div class="ep-caso-historia">' + ep.caso.historia + '</div>'
-      + '<div class="ep-caso-preguntas-label">Reflexiona</div>'
-      + ep.caso.preguntas.map(function(q,i){
-          return '<div class="ep-caso-pregunta"><span class="ep-caso-num">'+(i+1)+'</span><span>'+q+'</span></div>';
-        }).join('');
-  } else {
-    panelCaso += '<div class="ep-reto-coming">Próximamente...</div>';
-  }
-  panelCaso += '</div>';
-
-  // Panel: glosario
-  var panelGlos = '<div class="ep-panel" data-panel="glosario">';
-  if(ep.glosario && ep.glosario.length){
-    panelGlos += ep.glosario.map(function(g){
-      return '<div class="ep-glosario-item">'
-        + '<div class="ep-glosario-termino">' + g.termino + '</div>'
-        + '<div class="ep-glosario-def">' + g.definicion + '</div>'
-        + '</div>';
-    }).join('');
-  } else {
-    panelGlos += '<div class="ep-reto-coming">Próximamente...</div>';
-  }
-  panelGlos += '</div>';
-
-  // Panel: reto
-  var panelReto = '<div class="ep-panel" data-panel="reto">';
-  if(ep.reto){
-    panelReto += '<div class="ep-reto-box">'
-      + '<div class="ep-reto-header">'
-      + '<div class="ep-reto-icon">' + iconReto + '</div>'
-      + '<div><div class="ep-reto-label">Reto de 24 horas</div>'
-      + '<div class="ep-reto-sublabel">Una acción concreta para hoy</div></div>'
-      + '</div>'
-      + '<p class="ep-reto-text">' + ep.reto + '</p>'
-      + '</div>';
-  } else {
-    panelReto += '<div class="ep-reto-coming">Próximamente...</div>';
-  }
-  panelReto += '</div>';
-
-  return '<div class="ep-desc-wrap open">'
-    + '<div class="ep-tabs">'
-    + '<button class="ep-tab active" data-tab="desc">'   + iconDesc   + 'Episodio</button>'
-    + '<button class="ep-tab" data-tab="reflexion">'     + iconReflex + 'Reflexión</button>'
-    + '<button class="ep-tab" data-tab="caso">'          + iconCaso   + 'Caso</button>'
-    + '<button class="ep-tab" data-tab="glosario">'      + iconGlos   + 'Glosario</button>'
-    + '<button class="ep-tab" data-tab="reto">'          + iconReto   + 'Reto</button>'
-    + '</div>'
-    + '<div class="ep-tab-panels">'
-    + panelDesc + panelReflex + panelCaso + panelGlos + panelReto
-    + '</div>'
-    + '</div>';
-}
-
-// ── RENDER EPISODIOS ─────────────────────────────
-function renderEpisodes(cat){
-  const list=document.getElementById('episodeList');
-  const filtered=cat==='todos'?EPISODES:EPISODES.filter(e=>e.category===cat);
-  list.innerHTML='';
-  if(!filtered.length){
-    list.innerHTML='<div class="coming-soon">Próximamente más episodios en esta categoría...</div>';
-    return;
-  }
-  filtered.forEach(function(ep){
-    var cfg=CATS[ep.category];
-    var isActive=currentEp && currentEp.id===ep.id;
-    var isExpanded=expandedId===ep.id;
-    var nowPlay=isActive&&isPlaying;
-    var card=document.createElement('div');
-    card.className='episode-card'+(isActive?' active-card':'');
-
-    card.innerHTML=
-      '<div class="ep-main">'
-      +'<div class="ep-icon-wrap '+cfg.bg+'">'
-      +'<svg viewBox="0 0 32 32" style="color:'+cfg.color+'"><use href="'+cfg.icon+'"/></svg>'
-      +'</div>'
-      +'<div class="ep-info">'
-      +'<div class="ep-category '+cfg.bg+'">'+cfg.label+'</div>'
-      +'<div class="ep-title">'+ep.title+'</div>'
-      +'<div class="ep-meta"><span>'+ep.duration+'</span><span class="ep-dot"></span><span>'+ep.tags[0]+'</span></div>'
-      + buildPedagogyBadges(ep)
-      +'</div>'
-      +'<div class="ep-actions">'
-      +'<button class="ep-expand-btn'+(isExpanded?' open':'') +'">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
-      +'</button>'
-      +'<button class="ep-play-btn'+(nowPlay?' playing':'')+'">'
-      +(nowPlay
-        ?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>'
-        :'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>')
-      +'</button>'
-      +'</div>'
-      +'</div>'
-      + buildPedagogyPanel(ep, isExpanded);
-
-    // expand toggle
-    card.querySelector('.ep-expand-btn').addEventListener('click',function(e){
-      e.stopPropagation();
-      expandedId=(expandedId===ep.id)?null:ep.id;
-      renderEpisodes(activeCategory);
-    });
-
-    // play button
-    card.querySelector('.ep-play-btn').addEventListener('click',function(e){
-      e.stopPropagation(); loadEpisode(ep);
-    });
-
-    // main area click = play
-    card.querySelector('.ep-main').addEventListener('click',function(){ loadEpisode(ep); });
-
-    // tab switching (only if expanded)
-    if(isExpanded){
-      card.querySelectorAll('.ep-tab').forEach(function(tab){
-        tab.addEventListener('click',function(e){
-          e.stopPropagation();
-          var target=tab.getAttribute('data-tab');
-          card.querySelectorAll('.ep-tab').forEach(function(t){ t.classList.remove('active'); });
-          card.querySelectorAll('.ep-panel').forEach(function(p){ p.classList.remove('active'); });
-          tab.classList.add('active');
-          card.querySelector('[data-panel="'+target+'"]').classList.add('active');
-        });
-      });
-    }
-
-    list.appendChild(card);
-  });
-}
-
-// ── RENDER CATEGORÍAS GRID (estado activo) ───────
-function updateCatGrid(cat){
-  document.querySelectorAll('.cat-grid-item').forEach(el=>{
-    el.classList.toggle('active-cat', el.dataset.cat===cat);
-  });
-}
-
-// ── LOAD EPISODIO ────────────────────────────────
-function loadEpisode(ep){
-  if(currentEp && currentEp.id===ep.id){togglePlay();return;}
-  currentEp=ep;
-  const cfg=CATS[ep.category];
-  const pi=document.getElementById('playerIcon');
-  pi.className='player-ep-icon '+cfg.bg;
-  document.getElementById('playerIconSvg').style.color=cfg.color;
-  document.getElementById('playerIconSvg').querySelector('use').setAttribute('href',cfg.icon);
-  document.getElementById('playerCategory').textContent=cfg.label;
-  document.getElementById('playerCategory').style.color=cfg.color;
-  document.getElementById('playerTitle').textContent=ep.title;
-  document.getElementById('miniPlayer').classList.add('visible');
-  if(ep.src){
-    audio.pause();
-    audio.src=ep.src;
-    audio.load(); // necesario en Safari para cargar el nuevo src
-    document.getElementById('progressBar').style.width='0%';
-    document.getElementById('timeElapsed').textContent='0:00';
-    document.getElementById('timeTotal').textContent='0:00';
-    // Safari requiere que el play se dispare en respuesta directa a un gesto
-    // y manejo explícito del rechazo de la promesa
-    var playPromise=audio.play();
-    if(playPromise!==undefined){
-      playPromise.then(function(){
-        isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory);
-      }).catch(function(err){
-        // Safari bloqueó autoplay — el usuario tendrá que pulsar play manualmente
-        console.warn('Autoplay bloqueado por Safari:',err);
-        isPlaying=false; updatePlayUI(); renderEpisodes(activeCategory);
-      });
-    } else {
-      isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory);
-    }
-    return; // renderEpisodes se llama dentro del then/catch
-  } else {
-    simSeconds=0; isPlaying=true; updatePlayUI(); simulateProgress();
-  }
-  renderEpisodes(activeCategory);
-}
-
-function togglePlay(){
-  if(!currentEp)return;
-  if(currentEp.src){
-    if(isPlaying){
-      audio.pause(); isPlaying=false; updatePlayUI(); renderEpisodes(activeCategory);
-    } else {
-      var p=audio.play();
-      if(p!==undefined){
-        p.then(function(){ isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory); })
-         .catch(function(){ isPlaying=false; updatePlayUI(); });
-      } else { isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory); }
-    }
-    return;
-  }
-  isPlaying=!isPlaying;
-  if(isPlaying) simulateProgress();
-  updatePlayUI(); renderEpisodes(activeCategory);
-}
-function updatePlayUI(){
-  document.getElementById('iconPlay').style.display=isPlaying?'none':'block';
-  document.getElementById('iconPause').style.display=isPlaying?'block':'none';
-  document.getElementById('waveBars').classList.toggle('paused',!isPlaying);
-  updateDailyPlayBtn();
-}
-
-let simInterval=null,simSeconds=0;
-const simTotal=360;
-function simulateProgress(){
-  clearInterval(simInterval);
-  document.getElementById('timeTotal').textContent=fmt(simTotal);
-  simInterval=setInterval(()=>{
-    if(!isPlaying)return;
-    simSeconds=Math.min(simSeconds+1,simTotal);
-    document.getElementById('progressBar').style.width=(simSeconds/simTotal*100)+'%';
-    document.getElementById('timeElapsed').textContent=fmt(simSeconds);
-    if(simSeconds>=simTotal){clearInterval(simInterval);isPlaying=false;updatePlayUI();}
-  },1000);
-}
-function fmt(s){return`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;}
-
-audio.addEventListener('timeupdate',()=>{
-  if(!audio.duration)return;
-  const p=audio.currentTime/audio.duration*100;
-  document.getElementById('progressBar').style.width=p+'%';
-  document.getElementById('timeElapsed').textContent=fmt(Math.floor(audio.currentTime));
-  document.getElementById('timeTotal').textContent=fmt(Math.floor(audio.duration));
-});
-audio.addEventListener('ended',()=>{isPlaying=false;updatePlayUI();renderEpisodes(activeCategory);});
-
-document.getElementById('btnPlayMain').addEventListener('click',togglePlay);
-document.getElementById('btnSkipBack').addEventListener('click',function(){
-  if(currentEp && currentEp.src) audio.currentTime=Math.max(0,audio.currentTime-15);
-  else simSeconds=Math.max(0,simSeconds-15);
-});
-document.getElementById('btnSkipFwd').addEventListener('click',function(){
-  if(currentEp && currentEp.src) audio.currentTime=Math.min(audio.duration,audio.currentTime+15);
-  else simSeconds=Math.min(simTotal,simSeconds+15);
-});
-document.getElementById('progressBarOuter').addEventListener('click',function(e){
-  var p=(e.clientX-e.currentTarget.getBoundingClientRect().left)/e.currentTarget.offsetWidth;
-  if(currentEp && currentEp.src && audio.duration) audio.currentTime=p*audio.duration;
-  else simSeconds=Math.floor(p*simTotal);
-  document.getElementById('progressBar').style.width=(p*100)+'%';
-});
-
-// ── DAILY CARD EVENTS ────────────────────────────
-document.getElementById('dailyCard').addEventListener('click', function(){
-  if(dailyEp) loadEpisode(dailyEp);
-});
-document.getElementById('dailyPlayBtn').addEventListener('click', function(e){
-  e.stopPropagation();
-  if(dailyEp) loadEpisode(dailyEp);
-});
-document.getElementById('dailyShuffle').addEventListener('click', function(e){
-  e.stopPropagation();
-  var next = pickRandom(dailyEp);
-  renderDaily(next);
-});
-
-// ── CATEGORÍAS GRID CLICK ────────────────────────
-document.querySelectorAll('.cat-grid-item').forEach(item=>{
-  item.addEventListener('click',()=>{
-    activeCategory=item.dataset.cat;
-    updateCatGrid(activeCategory);
-    renderEpisodes(activeCategory);
-    // scroll suave a episodios
-    document.querySelector('.section-label').scrollIntoView({behavior:'smooth',block:'start'});
-  });
-});
-
-// ── PWA ──────────────────────────────────────────
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredPrompt=e;
-  document.getElementById('installBanner').classList.remove('hidden');
-});
-document.getElementById('installBtn').addEventListener('click',async()=>{
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  const{outcome}=await deferredPrompt.userChoice;
-  if(outcome==='accepted')document.getElementById('installBanner').classList.add('hidden');
-  deferredPrompt=null;
-});
-window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.add('hidden'));
-
-// ── INIT — carga episodios desde JSON externo ────
-fetch('episodios.json')
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    EPISODES = data;
-    // actualizar contador dinámico en el hero
-    var statNums = document.querySelectorAll('.stat-num');
-    if(statNums[1]) statNums[1].textContent = EPISODES.length;
-    renderEpisodes('todos');
-    renderDaily(pickRandom(null));
-  })
-  .catch(function(err){
-    console.error('Error cargando episodios.json:', err);
-    document.getElementById('episodeList').innerHTML =
-      '<div class="coming-soon">Error al cargar los episodios. Verifica tu conexión.</div>';
-  });
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
-  });
-}
 </script>
 </body>
 </html>
