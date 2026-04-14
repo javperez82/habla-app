@@ -1,1144 +1,854 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>ha.bla</title>
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-  <meta name="apple-mobile-web-app-title" content="ha.bla"/>
-  <meta name="description" content="Habilidades blandas en audio."/>
-  <meta name="theme-color" content="#f5f0e8"/>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,600;1,9..144,300&family=Literata:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ha.bla · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,200&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* ── Variables ── */
 :root {
-  --bg:         #f5f0e8;
-  --bg2:        #ede7d9;
-  --surface:    #ffffff;
-  --ink:        #1c1a16;
-  --ink-mid:    #4a4540;
-  --ink-muted:  #9a9188;
-  --accent:     #b05c2e;
-  --border:     rgba(28,26,22,0.1);
-  --border-med: rgba(28,26,22,0.18);
-  --radius:     16px;
-  --shadow:     0 2px 16px rgba(28,26,22,0.08);
-  --shadow-lg:  0 8px 40px rgba(28,26,22,0.15);
-
-  /* category palette */
-  --c-crecimiento: #2d7a5e;  --bg-crecimiento: #e2f4ed;
-  --c-motivacion:  #b05c2e;  --bg-motivacion:  #fdeee2;
-  --c-liderazgo:   #3d5a80;  --bg-liderazgo:   #e3eaf5;
-  --c-equipo:      #5c7a52;  --bg-equipo:      #e5f2e2;
-  --c-seguridad:   #7a3d52;  --bg-seguridad:   #f5e3e9;
-  --c-practicas:   #7a6230;  --bg-practicas:   #f5f0e0;
-  --c-ambiental:   #2d6b52;  --bg-ambiental:   #e0f5ed;
+  --bg:        #f0ebe0;
+  --surface:   #faf7f2;
+  --surface2:  #ffffff;
+  --ink:       #1c1a16;
+  --ink-mid:   #4a4540;
+  --ink-muted: #9a9188;
+  --accent:    #b05c2e;
+  --accent-l:  #fdeee2;
+  --green:     #2d7a5e;
+  --green-l:   #e2f4ed;
+  --amber:     #f5f0d8;
+  --amber-d:   #7a6230;
+  --border:    rgba(28,26,22,0.1);
+  --border-m:  rgba(28,26,22,0.18);
+  --shadow:    0 2px 12px rgba(28,26,22,0.07);
+  --shadow-lg: 0 8px 40px rgba(28,26,22,0.13);
+  --radius:    12px;
+  --sidebar:   240px;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100dvh;overscroll-behavior:none}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:14px}
 
-/* grain */
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
-  opacity:.5}
-header,main{position:relative;z-index:1}
+/* ── Layout ── */
+.app{display:flex;height:100vh;overflow:hidden}
 
-/* ── HEADER ── */
-header{
-  position:sticky;top:0;z-index:100;
-  background:rgba(245,240,232,0.92);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);
+  background:var(--ink);display:flex;flex-direction:column;
+  padding:0;overflow:hidden;
+}
+.sidebar-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.08)
+}
+.sidebar-logo .logo{
+  font-family:'Fraunces',serif;font-size:1.8rem;font-weight:600;
+  color:#f5f0e8;letter-spacing:-.03em
+}
+.sidebar-logo .logo em{font-style:italic;color:#e8b87a;font-weight:200}
+.sidebar-logo .logo-sub{
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.18em;
+  color:rgba(245,240,232,.35);margin-top:3px
+}
+.sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;cursor:pointer;
+  color:rgba(245,240,232,.55);font-size:.82rem;font-weight:400;
+  transition:all .15s;border:none;background:none;width:100%;text-align:left
+}
+.nav-item svg{width:15px;height:15px;opacity:.7;flex-shrink:0}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(245,240,232,.9)}
+.nav-item.active{background:rgba(176,92,46,.25);color:#f5f0e8;font-weight:500}
+.nav-item.active svg{opacity:1}
+.sidebar-foot{
+  padding:16px;border-top:1px solid rgba(255,255,255,.08);
+  font-size:.72rem;color:rgba(245,240,232,.3);letter-spacing:.04em
+}
+
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* ── Topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:10;
+  background:rgba(240,235,224,.95);backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
-  padding-top:env(safe-area-inset-top,0)
+  padding:14px 28px;display:flex;align-items:center;justify-content:space-between
 }
-.header-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 20px}
-.logo{font-family:'Fraunces',serif;font-size:1.95rem;font-weight:600;letter-spacing:-0.04em;color:var(--ink)}
-.logo em{font-style:italic;color:var(--accent);font-weight:200}
-.header-tag{font-size:.67rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted);border:1px solid var(--border-med);padding:4px 10px;border-radius:100px}
+.topbar-title{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:300;color:var(--ink)}
+.topbar-title em{font-style:italic;color:var(--accent)}
+.topbar-actions{display:flex;gap:8px;align-items:center}
 
-/* ── HERO ── */
-.hero{padding:36px 20px 0;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
-.hero-deco{position:absolute;right:-8px;top:-16px;font-size:7.5rem;opacity:.04;font-family:'Fraunces',serif;font-weight:600;color:var(--ink);pointer-events:none;user-select:none;line-height:1}
-.hero-eyebrow{font-size:.67rem;text-transform:uppercase;letter-spacing:.22em;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.hero-eyebrow::before{content:'';display:block;width:22px;height:1px;background:var(--accent)}
-.hero h1{font-family:'Fraunces',serif;font-size:2.65rem;font-weight:200;line-height:1.1;letter-spacing:-.025em;color:var(--ink);margin-bottom:10px}
-.hero h1 em{font-style:italic;color:var(--accent)}
-.hero-sub{font-family:'Literata',serif;font-size:.92rem;font-weight:300;color:var(--ink-mid);line-height:1.65;max-width:300px}
-.stats-bar{display:flex;border-top:1px solid var(--border);margin-top:26px}
-.stat{flex:1;padding:12px 0;text-align:center}
-.stat:not(:last-child){border-right:1px solid var(--border)}
-.stat-num{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:600;color:var(--ink);letter-spacing:-.02em}
-.stat-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-muted);margin-top:1px}
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:500;
+  cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif
+}
+.btn svg{width:13px;height:13px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#954e26}
+.btn-secondary{background:var(--surface2);color:var(--ink-mid);border:1px solid var(--border-m)}
+.btn-secondary:hover{background:var(--bg);color:var(--ink)}
+.btn-ghost{background:none;color:var(--ink-muted);padding:6px 10px}
+.btn-ghost:hover{color:var(--ink);background:var(--border)}
+.btn-danger{background:#fde8e8;color:#c03030;border:1px solid #f5c0c0}
+.btn-danger:hover{background:#f5c0c0}
+.btn-sm{padding:5px 10px;font-size:.72rem}
 
-/* ══════════════════════════════════
-   ESCUCHA AHORA — episodio aleatorio
-══════════════════════════════════ */
-.daily-section{padding:24px 20px 4px}
-.daily-label{
-  font-size:.67rem;text-transform:uppercase;letter-spacing:.18em;
+/* ── Content area ── */
+.content{padding:24px 28px;flex:1}
+
+/* ── Stats bar ── */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 18px;
+  display:flex;flex-direction:column;gap:4px
+}
+.stat-card-num{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:600;color:var(--ink);line-height:1}
+.stat-card-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-muted)}
+.stat-card-sub{font-size:.72rem;color:var(--ink-muted);margin-top:2px}
+
+/* ── Episodes list ── */
+.list-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px
+}
+.list-header-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted)}
+.filter-tabs{display:flex;gap:4px}
+.filter-tab{
+  padding:5px 12px;border-radius:6px;font-size:.72rem;font-weight:500;
+  cursor:pointer;border:1px solid var(--border);background:var(--surface2);
+  color:var(--ink-muted);transition:all .15s
+}
+.filter-tab.active{background:var(--ink);color:#f5f0e8;border-color:var(--ink)}
+
+.ep-table{width:100%;border-collapse:collapse}
+.ep-table th{
+  text-align:left;padding:10px 14px;
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-muted);
+  border-bottom:1px solid var(--border);font-weight:500;background:var(--surface)
+}
+.ep-table td{
+  padding:13px 14px;border-bottom:1px solid var(--border);
+  vertical-align:middle
+}
+.ep-table tr:last-child td{border-bottom:none}
+.ep-table tbody tr{background:var(--surface2);transition:background .12s}
+.ep-table tbody tr:hover{background:var(--accent-l)}
+
+.ep-cat-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 8px;border-radius:100px;font-size:.65rem;font-weight:500
+}
+.estado-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:100px;font-size:.68rem;font-weight:500
+}
+.estado-publicado{background:var(--green-l);color:var(--green)}
+.estado-borrador{background:var(--amber);color:var(--amber-d)}
+.estado-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+.ep-title-cell{font-weight:500;color:var(--ink);font-size:.85rem}
+.ep-meta-cell{font-size:.75rem;color:var(--ink-muted)}
+.ep-layers{display:flex;gap:4px}
+.ep-layer-dot{
+  width:20px;height:20px;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px
+}
+.ep-layer-dot.has{background:var(--green-l);color:var(--green)}
+.ep-layer-dot.empty{background:var(--amber);color:var(--amber-d)}
+.ep-layer-dot svg{width:10px;height:10px}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(28,26,22,.55);
+  z-index:200;display:flex;align-items:flex-start;justify-content:center;
+  padding:32px 20px;overflow-y:auto;
+  opacity:0;pointer-events:none;transition:opacity .2s
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--surface2);border-radius:16px;
+  width:100%;max-width:760px;box-shadow:var(--shadow-lg);
+  overflow:hidden;transform:translateY(16px);transition:transform .25s
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between
+}
+.modal-header-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:300;color:var(--ink)}
+.modal-body{padding:24px;display:flex;flex-direction:column;gap:20px}
+.modal-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:10px
+}
+
+/* ── Form ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{
+  font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--ink-muted);font-weight:500
+}
+.form-label span{color:var(--accent);margin-left:2px}
+.form-input,.form-select,.form-textarea{
+  padding:9px 12px;border-radius:8px;
+  border:1px solid var(--border-m);background:var(--surface);
+  color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.82rem;
+  transition:border-color .15s;outline:none
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.55}
+.form-textarea.tall{min-height:120px}
+
+/* Upload zone */
+.upload-zone{
+  border:2px dashed var(--border-m);border-radius:10px;
+  padding:24px;text-align:center;cursor:pointer;
+  transition:all .15s;background:var(--surface)
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-l)}
+.upload-zone-icon{font-size:1.8rem;margin-bottom:8px}
+.upload-zone-label{font-size:.8rem;color:var(--ink-mid);font-weight:500}
+.upload-zone-sub{font-size:.7rem;color:var(--ink-muted);margin-top:3px}
+.upload-progress{
+  height:4px;background:var(--border);border-radius:100px;
+  margin-top:12px;overflow:hidden;display:none
+}
+.upload-progress-bar{height:100%;background:var(--accent);border-radius:100px;width:0%;transition:width .3s}
+.upload-filename{font-size:.75rem;color:var(--green);margin-top:8px;display:none}
+
+/* Section divider */
+.form-section{
+  border-top:1px solid var(--border);padding-top:18px;margin-top:4px
+}
+.form-section-title{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.18em;
   color:var(--ink-muted);margin-bottom:14px;
-  display:flex;align-items:center;gap:10px
+  display:flex;align-items:center;gap:8px
 }
-.daily-label::after{content:'';flex:1;height:1px;background:var(--border)}
-.daily-label-dot{
-  width:7px;height:7px;border-radius:50%;background:var(--accent);
-  display:inline-block;flex-shrink:0;
-  animation:pulse 2.2s ease-in-out infinite
-}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
+.form-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
-.daily-card{
-  background:var(--bg2);border-radius:20px;
-  border:1px solid var(--border-med);
-  padding:22px 20px 20px;position:relative;overflow:hidden;
-  cursor:pointer;transition:transform .2s,box-shadow .2s;
-  box-shadow:0 3px 18px rgba(28,26,22,0.08)
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  background:var(--ink);color:#f5f0e8;
+  padding:12px 18px;border-radius:10px;font-size:.8rem;
+  transform:translateY(80px);opacity:0;transition:all .3s;
+  display:flex;align-items:center;gap:8px;max-width:320px
 }
-.daily-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(28,26,22,0.13)}
-.daily-card:active{transform:scale(.985)}
-.daily-card::before{
-  content:'';position:absolute;right:-40px;bottom:-50px;
-  width:220px;height:220px;border-radius:50%;
-  background:radial-gradient(circle,rgba(176,92,46,0.08) 0%,transparent 70%);
-  pointer-events:none
-}
-.daily-card::after{
-  content:'';position:absolute;right:18px;bottom:18px;
-  width:80px;height:80px;border-radius:50%;
-  border:1.5px solid rgba(176,92,46,0.12);pointer-events:none
-}
-.daily-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.daily-ep-icon{width:48px;height:48px;min-width:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.95}
-.daily-ep-icon svg{width:26px;height:26px}
-.daily-badge{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted);display:flex;align-items:center;gap:5px;padding-top:2px}
-.daily-badge svg{width:11px;height:11px;opacity:.6}
-.daily-category{font-size:.62rem;text-transform:uppercase;letter-spacing:.15em;font-weight:500;margin-bottom:5px}
-.daily-title{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:300;line-height:1.2;color:var(--ink);margin-bottom:6px}
-.daily-desc{font-family:'Literata',serif;font-size:.8rem;font-weight:300;line-height:1.6;color:var(--ink-mid);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.daily-footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
-.daily-meta{font-size:.69rem;color:var(--ink-muted);display:flex;align-items:center;gap:7px}
-.daily-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--border-med)}
-.daily-play-btn{width:46px;height:46px;border-radius:50%;background:var(--accent);border:none;color:#fff;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;box-shadow:0 3px 12px rgba(176,92,46,0.3)}
-.daily-play-btn.playing{background:var(--ink);color:#f5f0e8}
-.daily-play-btn svg{width:15px;height:15px}
-.daily-shuffle{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:11px;background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--ink-muted);letter-spacing:.06em;font-family:'DM Sans',sans-serif;transition:color .15s;padding:4px 0;width:100%}
-.daily-shuffle:hover{color:var(--ink)}
-.daily-shuffle svg{width:13px;height:13px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--green)}
+.toast.error{background:#c03030}
 
-/* indicadores pedagógicos — daily card y ep cards */
-.ep-pedagogy-indicators{
-  display:flex; gap:6px; align-items:center;
-  margin-top:12px; padding-top:12px;
-  border-top:1px solid var(--border);
+/* Empty state */
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--ink-muted)
 }
-.ep-pedagogy-badge{
-  width:26px; height:26px; border-radius:7px;
-  background:var(--surface); border:1px solid var(--border-med);
-  display:flex; align-items:center; justify-content:center;
-  color:var(--accent);
-}
-.ep-pedagogy-badge svg{ width:13px; height:13px; }
+.empty-state-icon{font-size:2.5rem;margin-bottom:12px}
+.empty-state-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:300;color:var(--ink-mid);margin-bottom:6px}
+.empty-state-sub{font-size:.78rem}
 
-/* versión para el card diario — fondo crema oscuro */
-#dailyPedagogy .ep-pedagogy-indicators{ border-color:var(--border); }
-#dailyPedagogy .ep-pedagogy-badge{ background:var(--surface); }
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--ink-muted)}
+.spinner{width:20px;height:20px;border:2px solid var(--border-m);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* label junto a los badges */
-.ep-pedagogy-label{
-  font-size:.6rem; text-transform:uppercase; letter-spacing:.14em;
-  color:var(--ink-muted); margin-left:2px;
-}
-
-/* ══════════════════════════════════
-   PANEL PEDAGÓGICO — tabs
-══════════════════════════════════ */
-.ep-tabs{
-  display:flex; gap:0;
-  border-bottom:1px solid var(--border);
-  margin:0 -1px; /* bleed to card edges */
-  overflow-x:auto; scrollbar-width:none;
-}
-.ep-tabs::-webkit-scrollbar{display:none}
-.ep-tab{
-  flex:1; min-width:0;
-  padding:10px 4px 9px;
-  font-size:.62rem; font-weight:500;
-  text-transform:uppercase; letter-spacing:.1em;
-  color:var(--ink-muted);
-  background:none; border:none; cursor:pointer;
-  border-bottom:2px solid transparent;
-  transition:color .18s, border-color .18s;
-  white-space:nowrap;
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-}
-.ep-tab svg{width:14px;height:14px;opacity:.6}
-.ep-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.ep-tab.active svg{opacity:1}
-.ep-tab:hover:not(.active){color:var(--ink-mid)}
-
-/* tab content panels */
-.ep-tab-panels{padding:16px 16px 18px}
-
-.ep-panel{display:none}
-.ep-panel.active{display:block}
-
-/* ── descripción ── */
-.ep-panel-desc .ep-desc-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.2em;color:var(--ink-muted);margin-bottom:8px}
-.ep-panel-desc .ep-desc-text{font-family:'Literata',serif;font-size:.88rem;font-weight:300;line-height:1.72;color:var(--ink-mid)}
-.ep-panel-desc .ep-desc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
-.ep-panel-desc .ep-tag{font-size:.64rem;padding:3px 9px;border-radius:100px;border:1px solid var(--border-med);color:var(--ink-muted);background:var(--bg2)}
-
-/* ── reflexión ── */
-.ep-reflexion-box{
-  background:var(--bg2); border-radius:12px;
-  padding:16px; border-left:3px solid var(--accent);
-}
-.ep-reflexion-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.2em;color:var(--accent);margin-bottom:8px;font-weight:500}
-.ep-reflexion-text{font-family:'Literata',serif;font-style:italic;font-size:.9rem;font-weight:300;line-height:1.7;color:var(--ink-mid)}
-
-/* ── caso ── */
-.ep-caso-titulo{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:10px}
-.ep-caso-historia{font-family:'Literata',serif;font-size:.86rem;font-weight:300;line-height:1.75;color:var(--ink-mid);white-space:pre-line;margin-bottom:14px}
-.ep-caso-preguntas-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted);margin-bottom:8px}
-.ep-caso-pregunta{
-  display:flex; gap:10px; align-items:flex-start;
-  padding:10px 12px; border-radius:10px;
-  background:var(--bg2); margin-bottom:6px;
-  font-family:'Literata',serif; font-size:.86rem; font-weight:300;
-  line-height:1.55; color:var(--ink-mid);
-}
-.ep-caso-num{
-  min-width:20px; height:20px; border-radius:50%;
-  background:var(--accent); color:#fff;
-  font-size:.65rem; font-weight:600; font-family:'DM Sans',sans-serif;
-  display:flex;align-items:center;justify-content:center; flex-shrink:0; margin-top:1px;
-}
-
-/* ── glosario ── */
-.ep-glosario-item{
-  padding:12px 0;
-  border-bottom:1px solid var(--border);
-}
-.ep-glosario-item:last-child{border-bottom:none}
-.ep-glosario-termino{
-  font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:500;
-  color:var(--ink); margin-bottom:4px;
-  display:flex; align-items:center; gap:7px;
-}
-.ep-glosario-termino::before{
-  content:''; display:block; width:6px; height:6px;
-  border-radius:50%; background:var(--accent); flex-shrink:0;
-}
-.ep-glosario-def{
-  font-family:'Literata',serif; font-size:.84rem; font-weight:300;
-  line-height:1.65; color:var(--ink-mid); padding-left:13px;
-}
-
-/* ── reto ── */
-.ep-reto-box{
-  background:linear-gradient(135deg,rgba(176,92,46,.07),rgba(92,122,82,.05));
-  border:1px solid rgba(176,92,46,.2); border-radius:14px; padding:18px;
-}
-.ep-reto-header{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.ep-reto-icon{
-  width:32px;height:32px;border-radius:50%;
-  background:var(--accent);color:#fff;
-  display:flex;align-items:center;justify-content:center; flex-shrink:0;
-}
-.ep-reto-icon svg{width:15px;height:15px}
-.ep-reto-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.18em;color:var(--accent);font-weight:500}
-.ep-reto-sublabel{font-size:.6rem;color:var(--ink-muted);margin-top:1px}
-.ep-reto-text{font-family:'Literata',serif;font-size:.9rem;font-weight:300;line-height:1.7;color:var(--ink-mid)}
-.ep-reto-coming{
-  text-align:center; padding:20px 0 4px;
-  font-family:'Fraunces',serif; font-style:italic;
-  font-size:.88rem; color:var(--ink-muted); font-weight:300;
-}
-
-/* ══════════════════════════════════
-   CATEGORÍAS GRID — PORTADA
-══════════════════════════════════ */
-.categories-section{padding:28px 20px 20px}
-.categories-title{font-size:.67rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted);margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.categories-title::after{content:'';flex:1;height:1px;background:var(--border)}
-
-.cat-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px
-}
-/* last item (7) spans 2 cols to balance */
-.cat-grid-item:last-child{ grid-column: span 1 }
-
-.cat-grid-item{
-  display:flex;flex-direction:column;align-items:center;gap:7px;
-  padding:14px 6px 12px;
-  background:var(--surface);
-  border:1px solid var(--border);border-radius:14px;
-  cursor:pointer;transition:all .2s;
-  text-align:center;
-}
-.cat-grid-item:hover,.cat-grid-item.active-cat{
-  box-shadow:0 4px 20px rgba(28,26,22,0.1);
-  transform:translateY(-1px)
-}
-.cat-grid-item.active-cat{border-width:2px}
-
-/* icon shape wrapper */
-.cat-shape{
-  width:44px;height:44px;
+/* Confirm dialog */
+.confirm-box{
+  position:fixed;inset:0;background:rgba(28,26,22,.6);z-index:300;
   display:flex;align-items:center;justify-content:center;
-  border-radius:12px;
-  transition:transform .2s
+  opacity:0;pointer-events:none;transition:opacity .2s
 }
-.cat-grid-item:hover .cat-shape,.cat-grid-item.active-cat .cat-shape{transform:scale(1.08)}
-.cat-shape svg{width:26px;height:26px;display:block}
-
-.cat-grid-label{
-  font-size:.62rem;font-weight:500;line-height:1.2;
-  color:var(--ink-mid);text-align:center
+.confirm-box.open{opacity:1;pointer-events:all}
+.confirm-card{
+  background:var(--surface2);border-radius:14px;padding:24px;
+  max-width:380px;width:90%;box-shadow:var(--shadow-lg)
 }
-.cat-grid-item.active-cat .cat-grid-label{font-weight:600}
+.confirm-title{font-weight:600;color:var(--ink);margin-bottom:8px}
+.confirm-msg{font-size:.82rem;color:var(--ink-mid);line-height:1.5;margin-bottom:20px}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
 
-/* per-category accent */
-.cat-grid-item[data-cat="crecimiento"]{background:var(--bg-crecimiento)}
-.cat-grid-item[data-cat="crecimiento"].active-cat{border-color:var(--c-crecimiento)}
-.cat-grid-item[data-cat="crecimiento"] .cat-shape{background:rgba(45,122,94,.15)}
-.cat-grid-item[data-cat="crecimiento"] .cat-grid-label{color:var(--c-crecimiento)}
-
-.cat-grid-item[data-cat="motivacion"]{background:var(--bg-motivacion)}
-.cat-grid-item[data-cat="motivacion"].active-cat{border-color:var(--c-motivacion)}
-.cat-grid-item[data-cat="motivacion"] .cat-shape{background:rgba(176,92,46,.15)}
-.cat-grid-item[data-cat="motivacion"] .cat-grid-label{color:var(--c-motivacion)}
-
-.cat-grid-item[data-cat="liderazgo"]{background:var(--bg-liderazgo)}
-.cat-grid-item[data-cat="liderazgo"].active-cat{border-color:var(--c-liderazgo)}
-.cat-grid-item[data-cat="liderazgo"] .cat-shape{background:rgba(61,90,128,.15)}
-.cat-grid-item[data-cat="liderazgo"] .cat-grid-label{color:var(--c-liderazgo)}
-
-.cat-grid-item[data-cat="equipo"]{background:var(--bg-equipo)}
-.cat-grid-item[data-cat="equipo"].active-cat{border-color:var(--c-equipo)}
-.cat-grid-item[data-cat="equipo"] .cat-shape{background:rgba(92,122,82,.15)}
-.cat-grid-item[data-cat="equipo"] .cat-grid-label{color:var(--c-equipo)}
-
-.cat-grid-item[data-cat="seguridad"]{background:var(--bg-seguridad)}
-.cat-grid-item[data-cat="seguridad"].active-cat{border-color:var(--c-seguridad)}
-.cat-grid-item[data-cat="seguridad"] .cat-shape{background:rgba(122,61,82,.15)}
-.cat-grid-item[data-cat="seguridad"] .cat-grid-label{color:var(--c-seguridad)}
-
-.cat-grid-item[data-cat="practicas"]{background:var(--bg-practicas)}
-.cat-grid-item[data-cat="practicas"].active-cat{border-color:var(--c-practicas)}
-.cat-grid-item[data-cat="practicas"] .cat-shape{background:rgba(122,98,48,.15)}
-.cat-grid-item[data-cat="practicas"] .cat-grid-label{color:var(--c-practicas)}
-
-.cat-grid-item[data-cat="ambiental"]{background:var(--bg-ambiental)}
-.cat-grid-item[data-cat="ambiental"].active-cat{border-color:var(--c-ambiental)}
-.cat-grid-item[data-cat="ambiental"] .cat-shape{background:rgba(45,107,82,.15)}
-.cat-grid-item[data-cat="ambiental"] .cat-grid-label{color:var(--c-ambiental)}
-
-/* ── SECTION LABEL ── */
-.section-label{
-  padding:4px 20px 12px;font-size:.65rem;text-transform:uppercase;
-  letter-spacing:.18em;color:var(--ink-muted);
-  display:flex;align-items:center;gap:10px
-}
-.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* ══════════════════════════════════
-   EPISODE CARDS
-══════════════════════════════════ */
-.episodes{padding:0 20px;display:flex;flex-direction:column;gap:10px;padding-bottom:158px}
-
-.episode-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);box-shadow:var(--shadow);
-  overflow:hidden;cursor:pointer;
-  transition:box-shadow .2s,border-color .2s
-}
-.episode-card:hover{box-shadow:var(--shadow-lg)}
-.episode-card.active-card{border-color:var(--accent)}
-
-.ep-main{display:flex;align-items:center;gap:14px;padding:15px 15px 13px}
-
-/* ── EP ICON — usa el mismo SVG que la categoría ── */
-.ep-icon-wrap{
-  width:52px;height:52px;min-width:52px;border-radius:13px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0
-}
-.ep-icon-wrap svg{width:28px;height:28px;display:block}
-
-.ep-info{flex:1;overflow:hidden}
-.ep-category{font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;margin-bottom:3px;font-weight:500}
-.ep-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:300;line-height:1.25;color:var(--ink);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ep-meta{font-size:.69rem;color:var(--ink-muted);display:flex;align-items:center;gap:7px}
-.ep-dot{width:3px;height:3px;border-radius:50%;background:var(--border-med)}
-
-.ep-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.ep-expand-btn{
-  width:30px;height:30px;border-radius:50%;
-  border:1px solid var(--border-med);background:transparent;color:var(--ink-muted);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s
-}
-.ep-expand-btn:hover{background:var(--bg2);color:var(--ink)}
-.ep-expand-btn svg{width:12px;height:12px;transition:transform .25s}
-.ep-expand-btn.open svg{transform:rotate(180deg)}
-
-.ep-play-btn{
-  width:40px;height:40px;border-radius:50%;
-  border:1.5px solid var(--border-med);background:transparent;color:var(--ink);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .2s;flex-shrink:0
-}
-.ep-play-btn.playing{background:var(--accent);border-color:var(--accent);color:#fff}
-.ep-play-btn svg{width:13px;height:13px}
-
-/* descripción — ahora dentro de tabs */
-
-/* category accent on ep-icon */
-.ei-crecimiento{background:var(--bg-crecimiento)} .ei-crecimiento .ep-category{color:var(--c-crecimiento)}
-.ei-motivacion {background:var(--bg-motivacion)}  .ei-motivacion  .ep-category{color:var(--c-motivacion)}
-.ei-liderazgo  {background:var(--bg-liderazgo)}   .ei-liderazgo   .ep-category{color:var(--c-liderazgo)}
-.ei-equipo     {background:var(--bg-equipo)}       .ei-equipo      .ep-category{color:var(--c-equipo)}
-.ei-seguridad  {background:var(--bg-seguridad)}    .ei-seguridad   .ep-category{color:var(--c-seguridad)}
-.ei-practicas  {background:var(--bg-practicas)}    .ei-practicas   .ep-category{color:var(--c-practicas)}
-.ei-ambiental  {background:var(--bg-ambiental)}    .ei-ambiental   .ep-category{color:var(--c-ambiental)}
-
-/* ── PLAYER ── */
-.mini-player{
-  position:fixed;bottom:0;left:0;right:0;z-index:200;
-  padding:0 13px calc(13px + env(safe-area-inset-bottom,0px));
-  transform:translateY(115%);
-  transition:transform .38s cubic-bezier(.34,1.56,.64,1)
-}
-.mini-player.visible{transform:translateY(0)}
-.player-card{
-  background:rgba(255,255,255,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid var(--border-med);border-radius:20px;
-  padding:13px 16px 12px;box-shadow:var(--shadow-lg)
-}
-.player-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.player-ep-icon{width:42px;height:42px;min-width:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.player-ep-icon svg{width:24px;height:24px}
-.player-info{flex:1;overflow:hidden}
-.player-category{font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;margin-bottom:2px}
-.player-title{font-family:'Fraunces',serif;font-size:.92rem;font-weight:300;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.wave-bars{display:flex;align-items:center;gap:2px;height:16px}
-.wave-bar{width:3px;height:100%;background:var(--accent);border-radius:2px;transform:scaleY(.35)}
-@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
-.wave-bar:nth-child(1){animation:wave .8s ease-in-out infinite 0s}
-.wave-bar:nth-child(2){animation:wave .8s ease-in-out infinite .15s}
-.wave-bar:nth-child(3){animation:wave .8s ease-in-out infinite .3s}
-.wave-bar:nth-child(4){animation:wave .8s ease-in-out infinite .15s}
-.wave-bar:nth-child(5){animation:wave .8s ease-in-out infinite 0s}
-.wave-bars.paused .wave-bar{animation-play-state:paused}
-
-.player-controls{display:flex;align-items:center;gap:10px}
-.ctrl-btn{background:none;border:none;color:var(--ink-muted);cursor:pointer;padding:4px;transition:color .15s}
-.ctrl-btn:hover{color:var(--ink)}
-.ctrl-btn svg{width:20px;height:20px;display:block}
-.play-main{width:44px;height:44px;border-radius:50%;background:var(--accent);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s;flex-shrink:0}
-.play-main:active{transform:scale(.92)}
-.play-main svg{width:17px;height:17px}
-.progress-wrap{flex:1;display:flex;flex-direction:column;gap:4px}
-.progress-bar-outer{height:3px;background:var(--bg2);border-radius:100px;cursor:pointer;overflow:hidden}
-.progress-bar-inner{height:100%;background:var(--accent);border-radius:100px;width:0%;transition:width .5s linear}
-.progress-times{display:flex;justify-content:space-between;font-size:.62rem;color:var(--ink-muted)}
-
-/* install */
-.install-banner{margin:18px 20px 0;background:linear-gradient(135deg,rgba(176,92,46,.08),rgba(92,122,82,.06));border:1px solid rgba(176,92,46,.18);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
-.install-banner.hidden{display:none}
-.install-icon{font-size:1.3rem}
-.install-text{flex:1;font-size:.76rem;color:var(--ink-mid);line-height:1.4}
-.install-text strong{color:var(--ink);display:block;margin-bottom:2px;font-weight:500}
-.install-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap}
-
-.coming-soon{text-align:center;padding:48px 20px;color:var(--ink-muted);font-family:'Fraunces',serif;font-style:italic;font-size:.95rem;font-weight:300}
-.foot-note{text-align:center;padding:18px 20px 10px;font-size:.63rem;color:var(--ink-muted);letter-spacing:.06em}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.episode-card{animation:fadeUp .3s ease both}
-.episode-card:nth-child(1){animation-delay:.03s}.episode-card:nth-child(2){animation-delay:.07s}
-.episode-card:nth-child(3){animation-delay:.11s}.episode-card:nth-child(4){animation-delay:.15s}
-.episode-card:nth-child(5){animation-delay:.19s}.episode-card:nth-child(6){animation-delay:.23s}
-.episode-card:nth-child(7){animation-delay:.27s}
-@keyframes fadeUpGrid{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.cat-grid-item{animation:fadeUpGrid .35s ease both}
-.cat-grid-item:nth-child(1){animation-delay:.04s}.cat-grid-item:nth-child(2){animation-delay:.08s}
-.cat-grid-item:nth-child(3){animation-delay:.12s}.cat-grid-item:nth-child(4){animation-delay:.16s}
-.cat-grid-item:nth-child(5){animation-delay:.20s}.cat-grid-item:nth-child(6){animation-delay:.24s}
-.cat-grid-item:nth-child(7){animation-delay:.28s}
+/* Category colors */
+.cat-crecimiento{background:#e2f4ed;color:#2d7a5e}
+.cat-motivacion {background:#fdeee2;color:#b05c2e}
+.cat-liderazgo  {background:#e3eaf5;color:#3d5a80}
+.cat-equipo     {background:#e5f2e2;color:#5c7a52}
+.cat-seguridad  {background:#f5e3e9;color:#7a3d52}
+.cat-practicas  {background:#f5f0e0;color:#7a6230}
+.cat-ambiental  {background:#e0f5ed;color:#2d6b52}
 </style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
-<header>
-  <div class="header-inner">
-    <div class="logo">ha<em>.</em>bla</div>
-    <div class="header-tag">Habilidades blandas</div>
-  </div>
-</header>
-
-<!-- ══════════════ SVG ICONS DEFS (inline, reutilizables) ══════════════ -->
-<!-- Cada categoría tiene su forma geométrica única como símbolo SVG -->
-<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-
-    <!-- CRECIMIENTO PERSONAL: brote/espiral ascendente con flecha -->
-    <symbol id="icon-crecimiento" viewBox="0 0 32 32">
-      <path d="M16 28 C16 28 16 18 16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-      <path d="M16 14 C14 10 10 8 7 9 C9 13 13 14 16 14" fill="currentColor" opacity=".85"/>
-      <path d="M16 14 C18 9 22 7 26 8 C23 12 19 14 16 14" fill="currentColor" opacity=".6"/>
-      <path d="M13 24 L16 21 L19 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    </symbol>
-
-    <!-- MOTIVACIÓN: rayo / chispa de energía -->
-    <symbol id="icon-motivacion" viewBox="0 0 32 32">
-      <polygon points="19,4 11,17 16,17 13,28 21,15 16,15" fill="currentColor"/>
-    </symbol>
-
-    <!-- LIDERAZGO: brújula / timón estilizado -->
-    <symbol id="icon-liderazgo" viewBox="0 0 32 32">
-      <circle cx="16" cy="16" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-      <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
-      <line x1="16" y1="6"  x2="16" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <line x1="16" y1="21" x2="16" y2="26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-      <line x1="6"  y1="16" x2="11" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-      <line x1="21" y1="16" x2="26" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-      <polygon points="16,6 14,11 18,11" fill="currentColor"/>
-    </symbol>
-
-    <!-- TRABAJO EN EQUIPO: tres nodos conectados -->
-    <symbol id="icon-equipo" viewBox="0 0 32 32">
-      <circle cx="16" cy="9"  r="3.5" fill="currentColor"/>
-      <circle cx="8"  cy="23" r="3.5" fill="currentColor"/>
-      <circle cx="24" cy="23" r="3.5" fill="currentColor"/>
-      <line x1="16" y1="12.5" x2="8.8"  y2="19.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="16" y1="12.5" x2="23.2" y2="19.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="11.5" y1="23" x2="20.5" y2="23"   stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </symbol>
-
-    <!-- SEGURIDAD: escudo con línea central -->
-    <symbol id="icon-seguridad" viewBox="0 0 32 32">
-      <path d="M16 4 L26 8 L26 17 C26 22 21 26.5 16 28 C11 26.5 6 22 6 17 L6 8 Z" stroke="currentColor" stroke-width="2" fill="currentColor" opacity=".18"/>
-      <path d="M16 4 L26 8 L26 17 C26 22 21 26.5 16 28 C11 26.5 6 22 6 17 L6 8 Z" stroke="currentColor" stroke-width="2" fill="none"/>
-      <line x1="16" y1="12" x2="16" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="16" cy="10.5" r="1.5" fill="currentColor"/>
-    </symbol>
-
-    <!-- BUENAS PRÁCTICAS: lista con check / marca de verificación doble -->
-    <symbol id="icon-practicas" viewBox="0 0 32 32">
-      <rect x="6" y="6" width="20" height="20" rx="4" stroke="currentColor" stroke-width="2" fill="currentColor" opacity=".12"/>
-      <rect x="6" y="6" width="20" height="20" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
-      <polyline points="10,16 14,20 22,12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    </symbol>
-
-    <!-- AMBIENTAL: hoja con nervadura -->
-    <symbol id="icon-ambiental" viewBox="0 0 32 32">
-      <path d="M16 27 C16 27 7 22 7 13 C7 7 12 4 16 4 C20 4 25 7 25 13 C25 22 16 27 16 27 Z" fill="currentColor" opacity=".2"/>
-      <path d="M16 27 C16 27 7 22 7 13 C7 7 12 4 16 4 C20 4 25 7 25 13 C25 22 16 27 16 27 Z" stroke="currentColor" stroke-width="2" fill="none"/>
-      <line x1="16" y1="27" x2="16" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="16" y1="17" x2="11" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
-      <line x1="16" y1="21" x2="20" y2="17" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
-    </symbol>
-
-  </defs>
-</svg>
-
-<main>
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-deco">hb</div>
-    <div class="hero-eyebrow">Podcast · Audio · Desarrollo humano</div>
-    <h1>Escucha.<br>Crece. <em>Lidera.</em></h1>
-    <p class="hero-sub">Episodios cortos, menos de 15 minutos, para desarrollar las habilidades que más importan.</p>
-    <div class="stats-bar">
-      <div class="stat"><div class="stat-num">7</div><div class="stat-label">Temas</div></div>
-      <div class="stat"><div class="stat-num">7</div><div class="stat-label">Episodios</div></div>
-      <div class="stat"><div class="stat-num">&lt;15'</div><div class="stat-label">Por episodio</div></div>
+<div class="app">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo">ha<em>.</em>bla</div>
+      <div class="logo-sub">Panel de administración</div>
     </div>
-  </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showView('episodios')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Episodios
+      </button>
+      <button class="nav-item" onclick="showView('storage')" style="opacity:.5;cursor:not-allowed" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Archivos
+      </button>
+      <button class="nav-item" disabled style="opacity:.5;cursor:not-allowed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analíticas
+      </button>
+      <button class="nav-item" disabled style="opacity:.5;cursor:not-allowed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuarios
+      </button>
+    </nav>
+    <div class="sidebar-foot">v0.6 · ha.bla CRM</div>
+  </aside>
 
-  <!-- INSTALL -->
-  <div id="installBanner" class="install-banner hidden">
-    <div class="install-icon">📲</div>
-    <div class="install-text"><strong>Instala ha.bla</strong>Acceso directo desde tu pantalla de inicio.</div>
-    <button class="install-btn" id="installBtn">Instalar</button>
-  </div>
-
-  <!-- ══ ESCUCHA AHORA ══ -->
-  <div class="daily-section">
-    <div class="daily-label">
-      <span class="daily-label-dot"></span>
-      Escucha ahora
-    </div>
-    <div class="daily-card" id="dailyCard">
-      <div class="daily-top">
-        <div class="daily-ep-icon" id="dailyIcon"></div>
-        <div class="daily-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Aleatorio
-        </div>
-      </div>
-      <div class="daily-category" id="dailyCategory"></div>
-      <div class="daily-title"   id="dailyTitle"></div>
-      <div class="daily-desc"    id="dailyDesc"></div>
-      <div class="daily-footer">
-        <div class="daily-meta">
-          <span id="dailyDuration"></span>
-          <span class="daily-meta-dot"></span>
-          <span id="dailyTag"></span>
-        </div>
-        <button class="daily-play-btn" id="dailyPlayBtn">
-          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Episodios <em>·</em> Gestión de contenido</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo episodio
         </button>
       </div>
-      <div id="dailyPedagogy"></div>
     </div>
-    <button class="daily-shuffle" id="dailyShuffle">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-      </svg>
-      Otro episodio
-    </button>
-  </div>
 
-  <!-- ══ CATEGORÍAS GRID ══ -->
-  <div class="categories-section">
-    <div class="categories-title">Explorar por tema</div>
-    <div class="cat-grid" id="catGrid">
-
-      <div class="cat-grid-item active-cat" data-cat="todos">
-        <div class="cat-shape" style="background:rgba(28,26,22,0.08)">
-          <svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--ink)">
-            <rect x="5" y="7" width="9" height="9" rx="2" fill="currentColor" opacity=".7"/>
-            <rect x="18" y="7" width="9" height="9" rx="2" fill="currentColor" opacity=".4"/>
-            <rect x="5" y="20" width="9" height="9" rx="2" fill="currentColor" opacity=".4"/>
-            <rect x="18" y="20" width="9" height="9" rx="2" fill="currentColor" opacity=".7"/>
-          </svg>
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-card-num" id="statTotal">—</div>
+          <div class="stat-card-label">Total episodios</div>
         </div>
-        <span class="cat-grid-label" style="color:var(--ink-mid)">Todos</span>
-      </div>
-
-      <div class="cat-grid-item" data-cat="crecimiento">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-crecimiento)"><use href="#icon-crecimiento"/></svg>
+        <div class="stat-card">
+          <div class="stat-card-num" id="statPublicados" style="color:var(--green)">—</div>
+          <div class="stat-card-label">Publicados</div>
         </div>
-        <span class="cat-grid-label">Creci&shy;miento</span>
-      </div>
-
-      <div class="cat-grid-item" data-cat="motivacion">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-motivacion)"><use href="#icon-motivacion"/></svg>
+        <div class="stat-card">
+          <div class="stat-card-num" id="statBorradores" style="color:var(--amber-d)">—</div>
+          <div class="stat-card-label">Borradores</div>
         </div>
-        <span class="cat-grid-label">Motiva&shy;ción</span>
-      </div>
-
-      <div class="cat-grid-item" data-cat="liderazgo">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-liderazgo)"><use href="#icon-liderazgo"/></svg>
+        <div class="stat-card">
+          <div class="stat-card-num" id="statCapas" style="color:var(--accent)">—</div>
+          <div class="stat-card-label">Con contenido pedagógico</div>
+          <div class="stat-card-sub" id="statCapasSub"></div>
         </div>
-        <span class="cat-grid-label">Liderazgo</span>
       </div>
 
-      <div class="cat-grid-item" data-cat="equipo">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-equipo)"><use href="#icon-equipo"/></svg>
+      <!-- List header -->
+      <div class="list-header">
+        <div class="list-header-title">Todos los episodios</div>
+        <div class="filter-tabs">
+          <div class="filter-tab active" onclick="filterEpisodes('todos', this)">Todos</div>
+          <div class="filter-tab" onclick="filterEpisodes('publicado', this)">Publicados</div>
+          <div class="filter-tab" onclick="filterEpisodes('borrador', this)">Borradores</div>
         </div>
-        <span class="cat-grid-label">Equipo</span>
       </div>
 
-      <div class="cat-grid-item" data-cat="seguridad">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-seguridad)"><use href="#icon-seguridad"/></svg>
+      <!-- Table -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <div id="episodesList">
+          <div class="loading"><div class="spinner"></div> Cargando episodios...</div>
         </div>
-        <span class="cat-grid-label">Seguri&shy;dad</span>
       </div>
-
-      <div class="cat-grid-item" data-cat="practicas">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-practicas)"><use href="#icon-practicas"/></svg>
-        </div>
-        <span class="cat-grid-label">Buenas Práct.</span>
-      </div>
-
-      <div class="cat-grid-item" data-cat="ambiental">
-        <div class="cat-shape">
-          <svg viewBox="0 0 32 32" width="26" height="26" style="color:var(--c-ambiental)"><use href="#icon-ambiental"/></svg>
-        </div>
-        <span class="cat-grid-label">Ambiental</span>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="section-label">Episodios disponibles</div>
-  <div class="episodes" id="episodeList"></div>
-  <div class="foot-note">ha.bla · Habilidades blandas en audio</div>
-</main>
-
-<!-- ── PLAYER ── -->
-<div class="mini-player" id="miniPlayer">
-  <div class="player-card">
-    <div class="player-top">
-      <div class="player-ep-icon ei-motivacion" id="playerIcon">
-        <svg viewBox="0 0 32 32" id="playerIconSvg" style="color:var(--c-motivacion)"><use href="#icon-motivacion"/></svg>
-      </div>
-      <div class="player-info">
-        <div class="player-category" id="playerCategory">Motivación</div>
-        <div class="player-title" id="playerTitle">Selecciona un episodio</div>
-      </div>
-      <div class="wave-bars paused" id="waveBars">
-        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-        <div class="wave-bar"></div><div class="wave-bar"></div>
-      </div>
-    </div>
-    <div class="player-controls">
-      <button class="ctrl-btn" id="btnSkipBack">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2.5 2v6h6"/><path d="M2.66 15.57a10 10 0 1 0 .57-8.38"/>
-          <text x="7.5" y="15.5" font-size="5.2" fill="currentColor" stroke="none" font-family="DM Sans" font-weight="500">15</text>
-        </svg>
-      </button>
-      <button class="play-main" id="btnPlayMain">
-        <svg id="iconPlay"  viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
-        <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
-      </button>
-      <div class="progress-wrap">
-        <div class="progress-bar-outer" id="progressBarOuter"><div class="progress-bar-inner" id="progressBar"></div></div>
-        <div class="progress-times"><span id="timeElapsed">0:00</span><span id="timeTotal">0:00</span></div>
-      </div>
-      <button class="ctrl-btn" id="btnSkipFwd">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38"/>
-          <text x="7.5" y="15.5" font-size="5.2" fill="currentColor" stroke="none" font-family="DM Sans" font-weight="500">15</text>
-        </svg>
-      </button>
     </div>
   </div>
 </div>
-<audio id="audioEl"></audio>
+
+<!-- ══ MODAL EPISODIO ══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-title" id="modalTitle">Nuevo episodio</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="epId"/>
+
+      <!-- Datos básicos -->
+      <div class="form-grid">
+        <div class="form-group form-grid-full">
+          <label class="form-label">Título del episodio <span>*</span></label>
+          <input class="form-input" id="epTitulo" placeholder="Ej. Activa tu máximo potencial ahora"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría <span>*</span></label>
+          <select class="form-select" id="epCategoria">
+            <option value="">Selecciona...</option>
+            <option value="crecimiento">Crecimiento Personal</option>
+            <option value="motivacion">Motivación</option>
+            <option value="liderazgo">Liderazgo</option>
+            <option value="equipo">Trabajo en Equipo</option>
+            <option value="seguridad">Seguridad</option>
+            <option value="practicas">Buenas Prácticas</option>
+            <option value="ambiental">Ambiental</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="epEstado">
+            <option value="borrador">Borrador</option>
+            <option value="publicado">Publicado</option>
+          </select>
+        </div>
+        <div class="form-group form-grid-full">
+          <label class="form-label">Descripción</label>
+          <textarea class="form-textarea" id="epDescripcion" placeholder="Máximo 3 oraciones. Sin spoiler del episodio..."></textarea>
+        </div>
+        <div class="form-group form-grid-full">
+          <label class="form-label">Tags <span style="color:var(--ink-muted);font-weight:400;text-transform:none;letter-spacing:0">(separados por coma)</span></label>
+          <input class="form-input" id="epTags" placeholder="perseverancia, esfuerzo sostenido, mentalidad de crecimiento"/>
+        </div>
+      </div>
+
+      <!-- Audio -->
+      <div class="form-section">
+        <div class="form-section-title">Audio</div>
+        <div class="form-grid">
+          <div class="form-group form-grid-full">
+            <label class="form-label">Subir archivo de audio</label>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('audioFile').click()"
+              ondragover="handleDrag(event)" ondrop="handleDrop(event)">
+              <div class="upload-zone-icon">🎙️</div>
+              <div class="upload-zone-label">Arrastra tu archivo aquí o haz clic para seleccionar</div>
+              <div class="upload-zone-sub">.m4a · .mp3 · máx. 50 MB</div>
+              <div class="upload-progress" id="uploadProgress">
+                <div class="upload-progress-bar" id="uploadProgressBar"></div>
+              </div>
+              <div class="upload-filename" id="uploadFilename"></div>
+            </div>
+            <input type="file" id="audioFile" accept=".m4a,.mp3,audio/*" style="display:none" onchange="handleFileSelect(event)"/>
+          </div>
+          <div class="form-group form-grid-full">
+            <label class="form-label">O pega la URL del audio directamente</label>
+            <input class="form-input" id="epAudioUrl" placeholder="https://...supabase.co/storage/v1/object/public/audio/0001.m4a"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duración</label>
+            <input class="form-input" id="epDuracion" placeholder="11:06 min"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capas pedagógicas -->
+      <div class="form-section">
+        <div class="form-section-title">Capas pedagógicas</div>
+        <div class="form-grid">
+          <div class="form-group form-grid-full">
+            <label class="form-label">💭 Reflexión</label>
+            <textarea class="form-textarea" id="epReflexion" placeholder="Una sola pregunta abierta y personal..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📋 Caso · Título</label>
+            <input class="form-input" id="epCasoTitulo" placeholder="El caso de Marcos"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📋 Caso · Preguntas <span style="color:var(--ink-muted);font-weight:400;text-transform:none;letter-spacing:0">(separa con |)</span></label>
+            <input class="form-input" id="epCasoPreguntas" placeholder="¿Pregunta 1?|¿Pregunta 2?"/>
+          </div>
+          <div class="form-group form-grid-full">
+            <label class="form-label">📋 Caso · Historia</label>
+            <textarea class="form-textarea tall" id="epCasoHistoria" placeholder="Máximo 250 palabras. Usa Enter para separar párrafos..."></textarea>
+          </div>
+          <div class="form-group form-grid-full">
+            <label class="form-label">📚 Glosario <span style="color:var(--ink-muted);font-weight:400;text-transform:none;letter-spacing:0">(Término::Definición, uno por línea)</span></label>
+            <textarea class="form-textarea tall" id="epGlosario" placeholder="Mentalidad de crecimiento::La creencia de que nuestras habilidades...&#10;Grit::Combinación de pasión sostenida y perseverancia..."></textarea>
+          </div>
+          <div class="form-group form-grid-full">
+            <label class="form-label">⚡ Reto de 24 horas</label>
+            <textarea class="form-textarea" id="epReto" placeholder="Una sola acción concreta. Empieza con un verbo: Observa, Escríbele, La próxima vez que..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div id="modalDeleteBtn"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-secondary" onclick="saveEpisode('borrador')">Guardar borrador</button>
+        <button class="btn btn-primary" onclick="saveEpisode('publicado')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Publicar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM ── -->
+<div class="confirm-box" id="confirmBox">
+  <div class="confirm-card">
+    <div class="confirm-title" id="confirmTitle">¿Eliminar episodio?</div>
+    <div class="confirm-msg" id="confirmMsg">Esta acción no se puede deshacer.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
 
 <script>
-// ── CATEGORY CONFIG ──────────────────────────────
+// ══════════════════════════════════════════════════
+// CONFIGURACIÓN — reemplaza con tus credenciales
+// ══════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://rhbyyhciyiacjbmkqbnw.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoYnl5aGNpeWlhY2pibWtxYm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTUwMTgsImV4cCI6MjA5MTY3MTAxOH0.jqJnsG1umJwR2VmSPfQZAd2rrKwAXu0JC2GdoZGh4bE';
+const BUCKET_AUDIO  = 'audio';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Estado ────────────────────────────────────────
+var allEpisodes  = [];
+var activeFilter = 'todos';
+var pendingFile  = null;
+var confirmCb    = null;
+
+// ── CATS ──────────────────────────────────────────
 const CATS = {
-  crecimiento: { label:'Crecimiento Personal', color:'var(--c-crecimiento)', bg:'ei-crecimiento', icon:'#icon-crecimiento' },
-  motivacion:  { label:'Motivación',           color:'var(--c-motivacion)',  bg:'ei-motivacion',  icon:'#icon-motivacion'  },
-  liderazgo:   { label:'Liderazgo',            color:'var(--c-liderazgo)',   bg:'ei-liderazgo',   icon:'#icon-liderazgo'   },
-  equipo:      { label:'Trabajo en Equipo',    color:'var(--c-equipo)',      bg:'ei-equipo',      icon:'#icon-equipo'      },
-  seguridad:   { label:'Seguridad',            color:'var(--c-seguridad)',   bg:'ei-seguridad',   icon:'#icon-seguridad'   },
-  practicas:   { label:'Buenas Prácticas',     color:'var(--c-practicas)',   bg:'ei-practicas',   icon:'#icon-practicas'   },
-  ambiental:   { label:'Ambiental',            color:'var(--c-ambiental)',   bg:'ei-ambiental',   icon:'#icon-ambiental'   },
+  crecimiento: { label:'Crecimiento Personal' },
+  motivacion:  { label:'Motivación' },
+  liderazgo:   { label:'Liderazgo' },
+  equipo:      { label:'Trabajo en Equipo' },
+  seguridad:   { label:'Seguridad' },
+  practicas:   { label:'Buenas Prácticas' },
+  ambiental:   { label:'Ambiental' },
 };
 
-// ── ESTADO ───────────────────────────────────────
-var EPISODES = [];
-var currentEp=null, isPlaying=false, activeCategory="todos", expandedId=null;
-const audio=document.getElementById('audioEl');
-
-// ── INDICADORES PEDAGÓGICOS ──────────────────────
-// Íconos SVG miniaturas para mostrar qué capas tiene cada episodio
-var PEDAGOGY_ICONS = {
-  reflexion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Reflexión"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-  caso:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Caso"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8v4h8V3z"/></svg>',
-  glosario:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Glosario"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-  reto:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Reto"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+const LAYER_ICONS = {
+  reflexion: '💭', caso: '📋', glosario: '📚', reto: '⚡'
 };
 
-function buildPedagogyBadges(ep){
-  var badges = '';
-  var layers = ['reflexion','caso','glosario','reto'];
-  layers.forEach(function(key){
-    if(ep[key]){
-      badges += '<span class="ep-pedagogy-badge" title="'+key+'">'+ PEDAGOGY_ICONS[key] +'</span>';
-    }
-  });
-  return badges ? '<div class="ep-pedagogy-indicators">' + badges + '</div>' : '';
-}
+// ── INIT ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadEpisodes);
 
-// ── EPISODIO ALEATORIO ───────────────────────────
-var dailyEp = null;
+// ── CARGAR EPISODIOS ──────────────────────────────
+async function loadEpisodes() {
+  var { data, error } = await sb
+    .from('episodios')
+    .select('*')
+    .order('orden', { ascending: true })
+    .order('creado_en', { ascending: true });
 
-function pickRandom(exclude){
-  var pool = EPISODES.filter(function(e){ return !exclude || e.id !== exclude.id; });
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-function renderDaily(ep){
-  dailyEp = ep;
-  var cfg = CATS[ep.category];
-
-  var iconEl = document.getElementById('dailyIcon');
-  iconEl.className = 'daily-ep-icon ' + cfg.bg;
-  iconEl.innerHTML = '<svg viewBox="0 0 32 32" style="color:'+cfg.color+'"><use href="'+cfg.icon+'"/></svg>';
-
-  document.getElementById('dailyCategory').textContent = cfg.label;
-  document.getElementById('dailyCategory').style.color = cfg.color;
-  document.getElementById('dailyTitle').textContent    = ep.title;
-  document.getElementById('dailyDesc').textContent     = ep.description;
-  document.getElementById('dailyDuration').textContent = ep.duration;
-  document.getElementById('dailyTag').textContent      = ep.tags[0];
-
-  // indicadores pedagógicos
-  document.getElementById('dailyPedagogy').innerHTML = buildPedagogyBadges(ep);
-
-  updateDailyPlayBtn();
-}
-
-function updateDailyPlayBtn(){
-  var btn = document.getElementById('dailyPlayBtn');
-  var isThisPlaying = currentEp && currentEp.id === (dailyEp && dailyEp.id) && isPlaying;
-  btn.className = 'daily-play-btn' + (isThisPlaying ? ' playing' : '');
-  btn.innerHTML = isThisPlaying
-    ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>'
-    : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>';
-}
-
-// ── HELPERS PEDAGÓGICOS ──────────────────────────
-function buildPedagogyPanel(ep, isExpanded){
-  if(!isExpanded) return '';
-
-  var hasPedagogy = ep.reflexion || ep.caso || ep.glosario || ep.reto;
-
-  // Tab icons SVG
-  var iconDesc   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>';
-  var iconReflex = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-  var iconCaso   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8v4h8V3z"/></svg>';
-  var iconGlos   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
-  var iconReto   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-
-  // Panel: descripción
-  var panelDesc = '<div class="ep-panel ep-panel-desc active" data-panel="desc">'
-    + '<div class="ep-desc-label">Sobre este episodio</div>'
-    + '<p class="ep-desc-text">' + ep.description + '</p>'
-    + '<div class="ep-desc-tags">' + ep.tags.map(function(t){return '<span class="ep-tag">#'+t+'</span>';}).join('') + '</div>'
-    + '</div>';
-
-  // Panel: reflexión
-  var panelReflex = '<div class="ep-panel" data-panel="reflexion">';
-  if(ep.reflexion){
-    panelReflex += '<div class="ep-reflexion-box">'
-      + '<div class="ep-reflexion-label">Pregunta de reflexión</div>'
-      + '<p class="ep-reflexion-text">' + ep.reflexion + '</p>'
-      + '</div>';
-  } else {
-    panelReflex += '<div class="ep-reto-coming">Próximamente...</div>';
+  if (error) {
+    showToast('Error al cargar episodios: ' + error.message, 'error');
+    document.getElementById('episodesList').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">No se pudo conectar con Supabase</div><div class="empty-state-sub">Verifica que SUPABASE_KEY esté configurada correctamente.</div></div>';
+    return;
   }
-  panelReflex += '</div>';
 
-  // Panel: caso
-  var panelCaso = '<div class="ep-panel" data-panel="caso">';
-  if(ep.caso){
-    panelCaso += '<div class="ep-caso-titulo">' + ep.caso.titulo + '</div>'
-      + '<div class="ep-caso-historia">' + ep.caso.historia + '</div>'
-      + '<div class="ep-caso-preguntas-label">Reflexiona</div>'
-      + ep.caso.preguntas.map(function(q,i){
-          return '<div class="ep-caso-pregunta"><span class="ep-caso-num">'+(i+1)+'</span><span>'+q+'</span></div>';
-        }).join('');
-  } else {
-    panelCaso += '<div class="ep-reto-coming">Próximamente...</div>';
+  allEpisodes = data || [];
+  updateStats();
+  renderTable(activeFilter);
+}
+
+// ── ESTADÍSTICAS ──────────────────────────────────
+function updateStats() {
+  var total       = allEpisodes.length;
+  var publicados  = allEpisodes.filter(e => e.estado === 'publicado').length;
+  var borradores  = allEpisodes.filter(e => e.estado === 'borrador').length;
+  var conCapas    = allEpisodes.filter(e => e.reflexion || e.caso_titulo || e.glosario || e.reto).length;
+
+  document.getElementById('statTotal').textContent      = total;
+  document.getElementById('statPublicados').textContent = publicados;
+  document.getElementById('statBorradores').textContent = borradores;
+  document.getElementById('statCapas').textContent      = conCapas;
+  document.getElementById('statCapasSub').textContent   = total > 0
+    ? Math.round(conCapas/total*100) + '% del total' : '';
+}
+
+// ── RENDER TABLE ──────────────────────────────────
+function renderTable(filter) {
+  var list = filter === 'todos'
+    ? allEpisodes
+    : allEpisodes.filter(e => e.estado === filter);
+
+  var container = document.getElementById('episodesList');
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎙️</div><div class="empty-state-title">No hay episodios aquí</div><div class="empty-state-sub">Crea tu primer episodio con el botón "Nuevo episodio".</div></div>';
+    return;
   }
-  panelCaso += '</div>';
 
-  // Panel: glosario
-  var panelGlos = '<div class="ep-panel" data-panel="glosario">';
-  if(ep.glosario && ep.glosario.length){
-    panelGlos += ep.glosario.map(function(g){
-      return '<div class="ep-glosario-item">'
-        + '<div class="ep-glosario-termino">' + g.termino + '</div>'
-        + '<div class="ep-glosario-def">' + g.definicion + '</div>'
-        + '</div>';
+  var html = '<table class="ep-table"><thead><tr>'
+    + '<th>Episodio</th><th>Categoría</th><th>Estado</th>'
+    + '<th>Capas</th><th>Duración</th><th></th>'
+    + '</tr></thead><tbody>';
+
+  list.forEach(function(ep) {
+    var cat    = CATS[ep.categoria] || { label: ep.categoria };
+    var layers = ['reflexion','caso_titulo','glosario','reto'].map(function(key) {
+      var has = key === 'caso_titulo' ? !!ep.caso_titulo : !!ep[key];
+      var icon = key === 'caso_titulo' ? LAYER_ICONS['caso'] : LAYER_ICONS[key];
+      return '<span class="ep-layer-dot ' + (has ? 'has' : 'empty') + '" title="' + key + '">' + icon + '</span>';
     }).join('');
-  } else {
-    panelGlos += '<div class="ep-reto-coming">Próximamente...</div>';
-  }
-  panelGlos += '</div>';
 
-  // Panel: reto
-  var panelReto = '<div class="ep-panel" data-panel="reto">';
-  if(ep.reto){
-    panelReto += '<div class="ep-reto-box">'
-      + '<div class="ep-reto-header">'
-      + '<div class="ep-reto-icon">' + iconReto + '</div>'
-      + '<div><div class="ep-reto-label">Reto de 24 horas</div>'
-      + '<div class="ep-reto-sublabel">Una acción concreta para hoy</div></div>'
-      + '</div>'
-      + '<p class="ep-reto-text">' + ep.reto + '</p>'
-      + '</div>';
-  } else {
-    panelReto += '<div class="ep-reto-coming">Próximamente...</div>';
-  }
-  panelReto += '</div>';
+    html += '<tr>'
+      + '<td><div class="ep-title-cell">' + escHtml(ep.titulo) + '</div></td>'
+      + '<td><span class="ep-cat-badge cat-' + ep.categoria + '">' + cat.label + '</span></td>'
+      + '<td><span class="estado-badge estado-' + ep.estado + '"><span class="estado-dot"></span>' + ep.estado + '</span></td>'
+      + '<td><div class="ep-layers">' + layers + '</div></td>'
+      + '<td class="ep-meta-cell">' + (ep.duracion || '—') + '</td>'
+      + '<td>'
+      + '<button class="btn btn-secondary btn-sm" onclick="editEpisode(' + ep.id + ')">Editar</button>'
+      + '</td>'
+      + '</tr>';
+  });
 
-  return '<div class="ep-desc-wrap open">'
-    + '<div class="ep-tabs">'
-    + '<button class="ep-tab active" data-tab="desc">'   + iconDesc   + 'Episodio</button>'
-    + '<button class="ep-tab" data-tab="reflexion">'     + iconReflex + 'Reflexión</button>'
-    + '<button class="ep-tab" data-tab="caso">'          + iconCaso   + 'Caso</button>'
-    + '<button class="ep-tab" data-tab="glosario">'      + iconGlos   + 'Glosario</button>'
-    + '<button class="ep-tab" data-tab="reto">'          + iconReto   + 'Reto</button>'
-    + '</div>'
-    + '<div class="ep-tab-panels">'
-    + panelDesc + panelReflex + panelCaso + panelGlos + panelReto
-    + '</div>'
-    + '</div>';
+  html += '</tbody></table>';
+  container.innerHTML = html;
 }
 
-// ── RENDER EPISODIOS ─────────────────────────────
-function renderEpisodes(cat){
-  const list=document.getElementById('episodeList');
-  const filtered=cat==='todos'?EPISODES:EPISODES.filter(e=>e.category===cat);
-  list.innerHTML='';
-  if(!filtered.length){
-    list.innerHTML='<div class="coming-soon">Próximamente más episodios en esta categoría...</div>';
+// ── FILTRAR ───────────────────────────────────────
+function filterEpisodes(filter, el) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  renderTable(filter);
+}
+
+// ── MODAL ─────────────────────────────────────────
+function openModal(ep) {
+  clearForm();
+  if (ep) {
+    document.getElementById('modalTitle').textContent = 'Editar episodio';
+    fillForm(ep);
+    document.getElementById('modalDeleteBtn').innerHTML =
+      '<button class="btn btn-danger btn-sm" onclick="confirmDelete(' + ep.id + ', \'' + escHtml(ep.titulo) + '\')">Eliminar</button>';
+  } else {
+    document.getElementById('modalTitle').textContent = 'Nuevo episodio';
+    document.getElementById('modalDeleteBtn').innerHTML = '';
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  pendingFile = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function editEpisode(id) {
+  var ep = allEpisodes.find(function(e) { return e.id === id; });
+  if (ep) openModal(ep);
+}
+
+// ── FORM ──────────────────────────────────────────
+function clearForm() {
+  ['epId','epTitulo','epDescripcion','epTags','epAudioUrl','epDuracion',
+   'epReflexion','epCasoTitulo','epCasoHistoria','epCasoPreguntas',
+   'epGlosario','epReto'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('epCategoria').value = '';
+  document.getElementById('epEstado').value = 'borrador';
+  document.getElementById('uploadFilename').style.display = 'none';
+  document.getElementById('uploadProgress').style.display = 'none';
+  pendingFile = null;
+}
+
+function fillForm(ep) {
+  document.getElementById('epId').value          = ep.id || '';
+  document.getElementById('epTitulo').value      = ep.titulo || '';
+  document.getElementById('epCategoria').value   = ep.categoria || '';
+  document.getElementById('epEstado').value      = ep.estado || 'borrador';
+  document.getElementById('epDescripcion').value = ep.descripcion || '';
+  document.getElementById('epTags').value        = (ep.tags || []).join(', ');
+  document.getElementById('epAudioUrl').value    = ep.audio_url || '';
+  document.getElementById('epDuracion').value    = ep.duracion || '';
+  document.getElementById('epReflexion').value   = ep.reflexion || '';
+  document.getElementById('epCasoTitulo').value  = ep.caso_titulo || '';
+  document.getElementById('epCasoHistoria').value= ep.caso_historia || '';
+  document.getElementById('epCasoPreguntas').value = (ep.caso_preguntas || []).join('|');
+  // Glosario: JSONB → texto
+  var glos = '';
+  if (ep.glosario && Array.isArray(ep.glosario)) {
+    glos = ep.glosario.map(function(g) { return g.termino + '::' + g.definicion; }).join('\n');
+  }
+  document.getElementById('epGlosario').value = glos;
+  document.getElementById('epReto').value = ep.reto || '';
+}
+
+function buildPayload(estado) {
+  // Parsear glosario
+  var glosRaw = document.getElementById('epGlosario').value.trim();
+  var glosario = null;
+  if (glosRaw) {
+    glosario = glosRaw.split('\n').filter(Boolean).map(function(l) {
+      var parts = l.split('::');
+      return { termino: (parts[0]||'').trim(), definicion: (parts[1]||'').trim() };
+    }).filter(function(g) { return g.termino; });
+  }
+
+  // Parsear tags
+  var tagsRaw = document.getElementById('epTags').value.trim();
+  var tags = tagsRaw ? tagsRaw.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+
+  // Parsear preguntas
+  var pregRaw = document.getElementById('epCasoPreguntas').value.trim();
+  var preguntas = pregRaw ? pregRaw.split('|').map(function(p) { return p.trim(); }).filter(Boolean) : null;
+
+  return {
+    titulo:          document.getElementById('epTitulo').value.trim(),
+    categoria:       document.getElementById('epCategoria').value,
+    estado:          estado,
+    descripcion:     document.getElementById('epDescripcion').value.trim() || null,
+    tags:            tags.length ? tags : null,
+    audio_url:       document.getElementById('epAudioUrl').value.trim() || null,
+    duracion:        document.getElementById('epDuracion').value.trim() || null,
+    reflexion:       document.getElementById('epReflexion').value.trim() || null,
+    caso_titulo:     document.getElementById('epCasoTitulo').value.trim() || null,
+    caso_historia:   document.getElementById('epCasoHistoria').value.trim() || null,
+    caso_preguntas:  preguntas,
+    glosario:        glosario,
+    reto:            document.getElementById('epReto').value.trim() || null,
+  };
+}
+
+// ── GUARDAR ───────────────────────────────────────
+async function saveEpisode(estado) {
+  var titulo = document.getElementById('epTitulo').value.trim();
+  var cat    = document.getElementById('epCategoria').value;
+  if (!titulo) { showToast('El título es obligatorio', 'error'); return; }
+  if (!cat)    { showToast('Selecciona una categoría', 'error'); return; }
+
+  // Subir audio si hay archivo pendiente
+  if (pendingFile) {
+    var audioUrl = await uploadAudio(pendingFile);
+    if (!audioUrl) return;
+    document.getElementById('epAudioUrl').value = audioUrl;
+  }
+
+  var payload = buildPayload(estado);
+  var id = document.getElementById('epId').value;
+  var result;
+
+  if (id) {
+    result = await sb.from('episodios').update(payload).eq('id', id).select();
+  } else {
+    result = await sb.from('episodios').insert(payload).select();
+  }
+
+  if (result.error) {
+    showToast('Error al guardar: ' + result.error.message, 'error');
     return;
   }
-  filtered.forEach(function(ep){
-    var cfg=CATS[ep.category];
-    var isActive=currentEp && currentEp.id===ep.id;
-    var isExpanded=expandedId===ep.id;
-    var nowPlay=isActive&&isPlaying;
-    var card=document.createElement('div');
-    card.className='episode-card'+(isActive?' active-card':'');
 
-    card.innerHTML=
-      '<div class="ep-main">'
-      +'<div class="ep-icon-wrap '+cfg.bg+'">'
-      +'<svg viewBox="0 0 32 32" style="color:'+cfg.color+'"><use href="'+cfg.icon+'"/></svg>'
-      +'</div>'
-      +'<div class="ep-info">'
-      +'<div class="ep-category '+cfg.bg+'">'+cfg.label+'</div>'
-      +'<div class="ep-title">'+ep.title+'</div>'
-      +'<div class="ep-meta"><span>'+ep.duration+'</span><span class="ep-dot"></span><span>'+ep.tags[0]+'</span></div>'
-      + buildPedagogyBadges(ep)
-      +'</div>'
-      +'<div class="ep-actions">'
-      +'<button class="ep-expand-btn'+(isExpanded?' open':'') +'">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
-      +'</button>'
-      +'<button class="ep-play-btn'+(nowPlay?' playing':'')+'">'
-      +(nowPlay
-        ?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>'
-        :'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>')
-      +'</button>'
-      +'</div>'
-      +'</div>'
-      + buildPedagogyPanel(ep, isExpanded);
-
-    // expand toggle
-    card.querySelector('.ep-expand-btn').addEventListener('click',function(e){
-      e.stopPropagation();
-      expandedId=(expandedId===ep.id)?null:ep.id;
-      renderEpisodes(activeCategory);
-    });
-
-    // play button
-    card.querySelector('.ep-play-btn').addEventListener('click',function(e){
-      e.stopPropagation(); loadEpisode(ep);
-    });
-
-    // main area click = play
-    card.querySelector('.ep-main').addEventListener('click',function(){ loadEpisode(ep); });
-
-    // tab switching (only if expanded)
-    if(isExpanded){
-      card.querySelectorAll('.ep-tab').forEach(function(tab){
-        tab.addEventListener('click',function(e){
-          e.stopPropagation();
-          var target=tab.getAttribute('data-tab');
-          card.querySelectorAll('.ep-tab').forEach(function(t){ t.classList.remove('active'); });
-          card.querySelectorAll('.ep-panel').forEach(function(p){ p.classList.remove('active'); });
-          tab.classList.add('active');
-          card.querySelector('[data-panel="'+target+'"]').classList.add('active');
-        });
-      });
-    }
-
-    list.appendChild(card);
-  });
+  showToast(estado === 'publicado' ? '✓ Episodio publicado' : '✓ Borrador guardado', 'success');
+  closeModal();
+  loadEpisodes();
 }
 
-// ── RENDER CATEGORÍAS GRID (estado activo) ───────
-function updateCatGrid(cat){
-  document.querySelectorAll('.cat-grid-item').forEach(el=>{
-    el.classList.toggle('active-cat', el.dataset.cat===cat);
-  });
-}
+// ── SUBIR AUDIO ───────────────────────────────────
+async function uploadAudio(file) {
+  var ext      = file.name.split('.').pop();
+  var filename = Date.now() + '_' + file.name.replace(/\s+/g,'_');
 
-// ── LOAD EPISODIO ────────────────────────────────
-function loadEpisode(ep){
-  if(currentEp && currentEp.id===ep.id){togglePlay();return;}
-  currentEp=ep;
-  const cfg=CATS[ep.category];
-  const pi=document.getElementById('playerIcon');
-  pi.className='player-ep-icon '+cfg.bg;
-  document.getElementById('playerIconSvg').style.color=cfg.color;
-  document.getElementById('playerIconSvg').querySelector('use').setAttribute('href',cfg.icon);
-  document.getElementById('playerCategory').textContent=cfg.label;
-  document.getElementById('playerCategory').style.color=cfg.color;
-  document.getElementById('playerTitle').textContent=ep.title;
-  document.getElementById('miniPlayer').classList.add('visible');
-  if(ep.src){
-    audio.pause();
-    audio.src=ep.src;
-    audio.load(); // necesario en Safari para cargar el nuevo src
-    document.getElementById('progressBar').style.width='0%';
-    document.getElementById('timeElapsed').textContent='0:00';
-    document.getElementById('timeTotal').textContent='0:00';
-    // Safari requiere que el play se dispare en respuesta directa a un gesto
-    // y manejo explícito del rechazo de la promesa
-    var playPromise=audio.play();
-    if(playPromise!==undefined){
-      playPromise.then(function(){
-        isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory);
-      }).catch(function(err){
-        // Safari bloqueó autoplay — el usuario tendrá que pulsar play manualmente
-        console.warn('Autoplay bloqueado por Safari:',err);
-        isPlaying=false; updatePlayUI(); renderEpisodes(activeCategory);
-      });
-    } else {
-      isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory);
-    }
-    return; // renderEpisodes se llama dentro del then/catch
-  } else {
-    simSeconds=0; isPlaying=true; updatePlayUI(); simulateProgress();
+  document.getElementById('uploadProgress').style.display = 'block';
+  document.getElementById('uploadProgressBar').style.width = '30%';
+
+  var { data, error } = await sb.storage
+    .from(BUCKET_AUDIO)
+    .upload(filename, file, { contentType: file.type, upsert: false });
+
+  document.getElementById('uploadProgressBar').style.width = '100%';
+
+  if (error) {
+    showToast('Error al subir audio: ' + error.message, 'error');
+    return null;
   }
-  renderEpisodes(activeCategory);
+
+  var { data: urlData } = sb.storage.from(BUCKET_AUDIO).getPublicUrl(filename);
+  return urlData.publicUrl;
 }
 
-function togglePlay(){
-  if(!currentEp)return;
-  if(currentEp.src){
-    if(isPlaying){
-      audio.pause(); isPlaying=false; updatePlayUI(); renderEpisodes(activeCategory);
-    } else {
-      var p=audio.play();
-      if(p!==undefined){
-        p.then(function(){ isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory); })
-         .catch(function(){ isPlaying=false; updatePlayUI(); });
-      } else { isPlaying=true; updatePlayUI(); renderEpisodes(activeCategory); }
-    }
-    return;
-  }
-  isPlaying=!isPlaying;
-  if(isPlaying) simulateProgress();
-  updatePlayUI(); renderEpisodes(activeCategory);
-}
-function updatePlayUI(){
-  document.getElementById('iconPlay').style.display=isPlaying?'none':'block';
-  document.getElementById('iconPause').style.display=isPlaying?'block':'none';
-  document.getElementById('waveBars').classList.toggle('paused',!isPlaying);
-  updateDailyPlayBtn();
+// ── ELIMINAR ──────────────────────────────────────
+function confirmDelete(id, titulo) {
+  confirmCb = async function() {
+    var { error } = await sb.from('episodios').delete().eq('id', id);
+    if (error) { showToast('Error al eliminar', 'error'); return; }
+    showToast('Episodio eliminado', 'success');
+    closeModal();
+    closeConfirm();
+    loadEpisodes();
+  };
+  document.getElementById('confirmMsg').textContent = 'Vas a eliminar "' + titulo + '". Esta acción no se puede deshacer.';
+  document.getElementById('confirmOkBtn').onclick = confirmCb;
+  document.getElementById('confirmBox').classList.add('open');
 }
 
-let simInterval=null,simSeconds=0;
-const simTotal=360;
-function simulateProgress(){
-  clearInterval(simInterval);
-  document.getElementById('timeTotal').textContent=fmt(simTotal);
-  simInterval=setInterval(()=>{
-    if(!isPlaying)return;
-    simSeconds=Math.min(simSeconds+1,simTotal);
-    document.getElementById('progressBar').style.width=(simSeconds/simTotal*100)+'%';
-    document.getElementById('timeElapsed').textContent=fmt(simSeconds);
-    if(simSeconds>=simTotal){clearInterval(simInterval);isPlaying=false;updatePlayUI();}
-  },1000);
+function closeConfirm() {
+  document.getElementById('confirmBox').classList.remove('open');
 }
-function fmt(s){return`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;}
 
-audio.addEventListener('timeupdate',()=>{
-  if(!audio.duration)return;
-  const p=audio.currentTime/audio.duration*100;
-  document.getElementById('progressBar').style.width=p+'%';
-  document.getElementById('timeElapsed').textContent=fmt(Math.floor(audio.currentTime));
-  document.getElementById('timeTotal').textContent=fmt(Math.floor(audio.duration));
-});
-audio.addEventListener('ended',()=>{isPlaying=false;updatePlayUI();renderEpisodes(activeCategory);});
+// ── UPLOAD UX ─────────────────────────────────────
+function handleFileSelect(e) {
+  var file = e.target.files[0];
+  if (file) setFile(file);
+}
 
-document.getElementById('btnPlayMain').addEventListener('click',togglePlay);
-document.getElementById('btnSkipBack').addEventListener('click',function(){
-  if(currentEp && currentEp.src) audio.currentTime=Math.max(0,audio.currentTime-15);
-  else simSeconds=Math.max(0,simSeconds-15);
-});
-document.getElementById('btnSkipFwd').addEventListener('click',function(){
-  if(currentEp && currentEp.src) audio.currentTime=Math.min(audio.duration,audio.currentTime+15);
-  else simSeconds=Math.min(simTotal,simSeconds+15);
-});
-document.getElementById('progressBarOuter').addEventListener('click',function(e){
-  var p=(e.clientX-e.currentTarget.getBoundingClientRect().left)/e.currentTarget.offsetWidth;
-  if(currentEp && currentEp.src && audio.duration) audio.currentTime=p*audio.duration;
-  else simSeconds=Math.floor(p*simTotal);
-  document.getElementById('progressBar').style.width=(p*100)+'%';
-});
+function handleDrag(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.add('drag');
+}
 
-// ── DAILY CARD EVENTS ────────────────────────────
-document.getElementById('dailyCard').addEventListener('click', function(){
-  if(dailyEp) loadEpisode(dailyEp);
-});
-document.getElementById('dailyPlayBtn').addEventListener('click', function(e){
-  e.stopPropagation();
-  if(dailyEp) loadEpisode(dailyEp);
-});
-document.getElementById('dailyShuffle').addEventListener('click', function(e){
-  e.stopPropagation();
-  var next = pickRandom(dailyEp);
-  renderDaily(next);
-});
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  var file = e.dataTransfer.files[0];
+  if (file) setFile(file);
+}
 
-// ── CATEGORÍAS GRID CLICK ────────────────────────
-document.querySelectorAll('.cat-grid-item').forEach(item=>{
-  item.addEventListener('click',()=>{
-    activeCategory=item.dataset.cat;
-    updateCatGrid(activeCategory);
-    renderEpisodes(activeCategory);
-    // scroll suave a episodios
-    document.querySelector('.section-label').scrollIntoView({behavior:'smooth',block:'start'});
-  });
-});
+function setFile(file) {
+  pendingFile = file;
+  var fn = document.getElementById('uploadFilename');
+  fn.textContent = '✓ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+  fn.style.display = 'block';
+}
 
-// ── PWA ──────────────────────────────────────────
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredPrompt=e;
-  document.getElementById('installBanner').classList.remove('hidden');
-});
-document.getElementById('installBtn').addEventListener('click',async()=>{
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  const{outcome}=await deferredPrompt.userChoice;
-  if(outcome==='accepted')document.getElementById('installBanner').classList.add('hidden');
-  deferredPrompt=null;
-});
-window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.add('hidden'));
+// ── TOAST ─────────────────────────────────────────
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || '') + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
 
-// ── INIT — carga episodios desde JSON externo ────
-fetch('episodios.json')
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    EPISODES = data;
-    // actualizar contador dinámico en el hero
-    var statNums = document.querySelectorAll('.stat-num');
-    if(statNums[1]) statNums[1].textContent = EPISODES.length;
-    renderEpisodes('todos');
-    renderDaily(pickRandom(null));
-  })
-  .catch(function(err){
-    console.error('Error cargando episodios.json:', err);
-    document.getElementById('episodeList').innerHTML =
-      '<div class="coming-soon">Error al cargar los episodios. Verifica tu conexión.</div>';
-  });
+// ── UTILS ─────────────────────────────────────────
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
-  });
+function showView(v) {
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
 }
 </script>
 </body>
