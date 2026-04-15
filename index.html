@@ -509,6 +509,94 @@ header{
   text-align:center;padding:18px 20px 10px;
   font-size:.65rem;color:var(--ink-muted);letter-spacing:.06em;font-weight:500
 }
+
+/* ════════════════════════════════════
+   MENÚ DE AJUSTES
+════════════════════════════════════ */
+.btn-settings{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--ink-muted);display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;margin-right:8px
+}
+.btn-settings:hover{border-color:var(--accent);color:var(--accent)}
+.btn-settings svg{width:16px;height:16px}
+
+.settings-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  opacity:0;pointer-events:none;transition:opacity .22s
+}
+.settings-overlay.open{opacity:1;pointer-events:all}
+
+.settings-sheet{
+  background:var(--surface);border:1px solid var(--border-m);
+  border-radius:20px 20px 0 0;width:100%;max-width:480px;
+  padding:0 0 24px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.45,1)
+}
+.settings-overlay.open .settings-sheet{transform:translateY(0)}
+
+.settings-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:var(--surface3);margin:12px auto 0
+}
+.settings-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 14px
+}
+.settings-header h2{font-size:1rem;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.btn-close-settings{
+  background:none;border:none;color:var(--ink-muted);padding:4px;transition:color .15s
+}
+.btn-close-settings:hover{color:var(--ink)}
+.btn-close-settings svg{width:16px;height:16px}
+
+.settings-section{padding:0 20px 20px;border-bottom:1px solid var(--border)}
+.settings-section:last-child{border-bottom:none;padding-bottom:0}
+.settings-section-label{
+  font-size:.67rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-muted);margin-bottom:12px
+}
+
+/* Selector de tamaño de texto */
+.font-size-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.font-size-btn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 6px 10px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:12px;cursor:pointer;transition:all .18s;
+  font-family:'Source Sans 3',sans-serif
+}
+.font-size-btn:hover{border-color:rgba(124,127,255,.4)}
+.font-size-btn.active{
+  background:rgba(124,127,255,.12);
+  border-color:var(--accent)
+}
+.font-size-btn .fs-sample{
+  font-weight:600;color:var(--ink);line-height:1;
+  transition:font-size .15s
+}
+.font-size-btn .fs-label{
+  font-size:.65rem;font-weight:500;color:var(--ink-muted);
+  white-space:nowrap
+}
+.font-size-btn.active .fs-label{color:var(--accent)}
+
+/* Muestra de texto en vivo */
+.font-preview{
+  margin-top:14px;padding:14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px
+}
+.font-preview-title{
+  font-weight:700;color:var(--ink);line-height:1.2;
+  margin-bottom:4px;letter-spacing:-.01em
+}
+.font-preview-body{
+  font-weight:400;color:var(--ink-mid);line-height:1.6
+}
 </style>
 </head>
 <body>
@@ -567,12 +655,17 @@ header{
 <header>
   <div class="header-inner">
     <div class="logo">ha<em>.</em>bla</div>
-    <button class="btn-auth" id="btnAuth" onclick="openAuth()">
-      <div class="avatar" id="authAvatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-      <span id="authLabel">Entrar</span>
-    </button>
+    <div style="display:flex;align-items:center">
+      <button class="btn-settings" id="btnSettings" onclick="openSettings()" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="btn-auth" id="btnAuth" onclick="openAuth()">
+        <div class="avatar" id="authAvatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <span id="authLabel">Entrar</span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -692,6 +785,44 @@ header{
         <div class="auth-user-email" id="authUserEmail"></div>
       </div>
       <button class="btn-signout" onclick="handleSignOut()">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL DE AJUSTES ════════════════════════ -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOutside(event)">
+  <div class="settings-sheet">
+    <div class="settings-handle"></div>
+    <div class="settings-header">
+      <h2>Ajustes</h2>
+      <button class="btn-close-settings" onclick="closeSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-label">Tamaño de texto</div>
+      <div class="font-size-grid">
+        <button class="font-size-btn" data-size="small" onclick="setFontSize('small')">
+          <span class="fs-sample" style="font-size:14px">Aa</span>
+          <span class="fs-label">Pequeño</span>
+        </button>
+        <button class="font-size-btn" data-size="normal" onclick="setFontSize('normal')">
+          <span class="fs-sample" style="font-size:17px">Aa</span>
+          <span class="fs-label">Normal</span>
+        </button>
+        <button class="font-size-btn" data-size="large" onclick="setFontSize('large')">
+          <span class="fs-sample" style="font-size:21px">Aa</span>
+          <span class="fs-label">Grande</span>
+        </button>
+        <button class="font-size-btn" data-size="xlarge" onclick="setFontSize('xlarge')">
+          <span class="fs-sample" style="font-size:25px">Aa</span>
+          <span class="fs-label">Muy grande</span>
+        </button>
+      </div>
+      <div class="font-preview" id="fontPreview">
+        <div class="font-preview-title">Activa tu máximo potencial</div>
+        <div class="font-preview-body">Episodios cortos para desarrollar las habilidades que más importan en tu vida profesional.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1346,6 +1477,43 @@ async function init() {
     renderDaily(episodes[Math.floor(Math.random() * episodes.length)]);
   }
 }
+
+// ════════════════════════════════════
+// AJUSTES — TAMAÑO DE TEXTO
+// ════════════════════════════════════
+const FS_KEY = 'habla_fontsize_v1';
+const FS_MAP = { small:'13px', normal:'16px', large:'19px', xlarge:'22px' };
+
+function setFontSize(size) {
+  document.documentElement.style.fontSize = FS_MAP[size] || '16px';
+  localStorage.setItem(FS_KEY, size);
+  document.querySelectorAll('.font-size-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.size === size)
+  );
+}
+
+function openSettings() {
+  document.getElementById('settingsOverlay').classList.add('open');
+  const saved = localStorage.getItem(FS_KEY) || 'normal';
+  document.querySelectorAll('.font-size-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.size === saved)
+  );
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+function closeSettingsOutside(e) {
+  if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+}
+
+// Aplicar tamaño guardado al arrancar
+(function() {
+  const saved = localStorage.getItem(FS_KEY) || 'normal';
+  document.documentElement.style.fontSize = FS_MAP[saved] || '16px';
+})();
+
 
 init();
 </script>
