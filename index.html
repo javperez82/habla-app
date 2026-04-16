@@ -18,34 +18,27 @@
 /* ════════════════════════════════════
    TOKENS — Índigo ajustado WCAG
 ════════════════════════════════════ */
+/* ── Tema oscuro (defecto) ── */
 :root{
-  /* Fondos */
   --bg:       #0d0d1a;
   --bg2:      #13132a;
   --surface:  #1a1a35;
   --surface2: #20203f;
   --surface3: #28285a;
-
-  /* Texto */
   --ink:      #eeeef8;
   --ink-mid:  #b0b0d0;
   --ink-muted:#7878a8;
-
-  /* Acento principal — brillo ajustado para WCAG AA */
   --accent:   #7c7fff;
   --accent-d: #6366f1;
   --accent-l: rgba(124,127,255,.15);
-
-  /* Bordes */
   --border:   rgba(124,127,255,.12);
   --border-m: rgba(124,127,255,.22);
-
-  /* Sistema */
   --radius:   14px;
   --shadow:   0 2px 20px rgba(0,0,0,.35);
   --shadow-lg:0 8px 40px rgba(0,0,0,.55);
-
-  /* Categorías — versión oscura */
+  --header-bg:rgba(13,13,26,.88);
+  --player-bg:rgba(26,26,53,.97);
+  --avatar-ink:#0d0d1a;
   --c-crecimiento:#5db88a; --bg-crecimiento:rgba(93,184,138,.12);
   --c-motivacion: #f4956a; --bg-motivacion: rgba(244,149,106,.12);
   --c-liderazgo:  #7c9fd8; --bg-liderazgo:  rgba(124,159,216,.12);
@@ -53,6 +46,35 @@
   --c-seguridad:  #d082a8; --bg-seguridad:  rgba(208,130,168,.12);
   --c-practicas:  #d4b86a; --bg-practicas:  rgba(212,184,106,.12);
   --c-ambiental:  #5bbf9f; --bg-ambiental:  rgba(91,191,159,.12);
+}
+
+/* ── Tema claro (Opción A: blanco + índigo oscuro) ── */
+[data-theme="light"]{
+  --bg:       #ffffff;
+  --bg2:      #f7f7ff;
+  --surface:  #ffffff;
+  --surface2: #f0f0fa;
+  --surface3: #e4e4f4;
+  --ink:      #1a1a3a;
+  --ink-mid:  #4a4a6a;
+  --ink-muted:#8888a8;
+  --accent:   #3d3dbe;
+  --accent-d: #2f2fa0;
+  --accent-l: rgba(61,61,190,.10);
+  --border:   rgba(61,61,190,.14);
+  --border-m: rgba(61,61,190,.24);
+  --shadow:   0 2px 20px rgba(26,26,58,.08);
+  --shadow-lg:0 8px 40px rgba(26,26,58,.14);
+  --header-bg:rgba(255,255,255,.92);
+  --player-bg:rgba(240,240,250,.97);
+  --avatar-ink:#ffffff;
+  --c-crecimiento:#1e7a50; --bg-crecimiento:rgba(30,122,80,.10);
+  --c-motivacion: #c44a10; --bg-motivacion: rgba(196,74,16,.10);
+  --c-liderazgo:  #2a5fa8; --bg-liderazgo:  rgba(42,95,168,.10);
+  --c-equipo:     #2e7a28; --bg-equipo:     rgba(46,122,40,.10);
+  --c-seguridad:  #8a2a5a; --bg-seguridad:  rgba(138,42,90,.10);
+  --c-practicas:  #7a5a10; --bg-practicas:  rgba(122,90,16,.10);
+  --c-ambiental:  #1a6a50; --bg-ambiental:  rgba(26,106,80,.10);
 }
 
 /* ════════════════════════════════════
@@ -80,7 +102,7 @@ header,main{position:relative;z-index:1}
 ════════════════════════════════════ */
 header{
   position:sticky;top:0;z-index:100;
-  background:rgba(13,13,26,.88);
+  background:var(--header-bg);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
   padding-top:env(safe-area-inset-top,0)
@@ -100,7 +122,7 @@ header{
 .btn-auth:hover{border-color:var(--accent);color:var(--ink)}
 .avatar{
   width:24px;height:24px;border-radius:50%;background:var(--accent);
-  color:#0d0d1a;display:flex;align-items:center;justify-content:center;
+  color:var(--avatar-ink);display:flex;align-items:center;justify-content:center;
   font-size:.68rem;font-weight:700;flex-shrink:0
 }
 .avatar svg{width:13px;height:13px}
@@ -153,7 +175,7 @@ header{
 .install-text{flex:1;font-size:.78rem;color:var(--ink-mid);line-height:1.4}
 .install-text strong{color:var(--ink);display:block;margin-bottom:2px;font-weight:600}
 .btn-install{
-  background:var(--accent);color:#0d0d1a;border:none;
+  background:var(--accent);color:var(--avatar-ink);border:none;
   border-radius:8px;padding:7px 13px;font-size:.75rem;font-weight:700
 }
 
@@ -200,7 +222,7 @@ header{
 .daily-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--border-m)}
 .btn-daily-play{
   width:46px;height:46px;border-radius:50%;
-  background:var(--accent);border:none;color:#0d0d1a;
+  background:var(--accent);border:none;color:var(--avatar-ink);
   display:flex;align-items:center;justify-content:center;
   transition:all .2s;box-shadow:0 3px 16px rgba(124,127,255,.35);flex-shrink:0
 }
@@ -310,7 +332,7 @@ header{
   transition:all .2s;flex-shrink:0
 }
 .btn-play:hover{border-color:var(--accent);color:var(--accent)}
-.btn-play.playing{background:var(--accent);border-color:var(--accent);color:#0d0d1a}
+.btn-play.playing{background:var(--accent);border-color:var(--accent);color:var(--avatar-ink)}
 .btn-play svg{width:13px;height:13px}
 
 /* icon backgrounds per category */
@@ -362,7 +384,7 @@ header{
 }
 .caso-num{
   min-width:20px;height:20px;border-radius:50%;
-  background:var(--accent);color:#0d0d1a;
+  background:var(--accent);color:var(--avatar-ink);
   font-size:.68rem;font-weight:700;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px
 }
@@ -379,7 +401,7 @@ header{
 .reto-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .reto-icon{
   width:32px;height:32px;border-radius:50%;
-  background:var(--accent);color:#0d0d1a;
+  background:var(--accent);color:var(--avatar-ink);
   display:flex;align-items:center;justify-content:center;flex-shrink:0
 }
 .reto-icon svg{width:15px;height:15px}
@@ -397,7 +419,7 @@ header{
 }
 .player.visible{transform:translateY(0)}
 .player-card{
-  background:rgba(26,26,53,.97);
+  background:var(--player-bg);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border:1px solid var(--border-m);border-radius:18px;
   padding:13px 16px 12px;box-shadow:var(--shadow-lg)
@@ -423,7 +445,7 @@ header{
 .btn-ctrl svg{width:20px;height:20px;display:block}
 .btn-play-main{
   width:44px;height:44px;border-radius:50%;
-  background:var(--accent);border:none;color:#0d0d1a;
+  background:var(--accent);border:none;color:var(--avatar-ink);
   display:flex;align-items:center;justify-content:center;
   transition:transform .15s;flex-shrink:0;
   box-shadow:0 2px 12px rgba(124,127,255,.4)
@@ -460,7 +482,7 @@ header{
   background:none;border:none;color:var(--ink-muted);
   border-radius:6px;transition:all .15s
 }
-.auth-tab-btn.active{background:var(--accent);color:#0d0d1a}
+.auth-tab-btn.active{background:var(--accent);color:var(--avatar-ink)}
 .auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .auth-lbl{font-size:.67rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-muted);font-weight:600}
 .auth-input{
@@ -473,7 +495,7 @@ header{
 .auth-input::placeholder{color:var(--ink-muted)}
 .btn-auth-submit{
   width:100%;padding:11px;border-radius:10px;
-  background:var(--accent);color:#0d0d1a;border:none;
+  background:var(--accent);color:var(--avatar-ink);border:none;
   font-size:.9rem;font-weight:700;margin-top:6px;transition:all .15s
 }
 .btn-auth-submit:hover{background:#9496ff}
@@ -485,7 +507,7 @@ header{
 .auth-user-wrap{text-align:center;padding:8px 0 16px}
 .auth-user-avatar{
   width:48px;height:48px;border-radius:50%;
-  background:var(--accent);color:#0d0d1a;
+  background:var(--accent);color:var(--avatar-ink);
   font-size:1.1rem;font-weight:700;
   display:flex;align-items:center;justify-content:center;margin:0 auto 10px
 }
@@ -559,6 +581,21 @@ header{
   font-size:.67rem;font-weight:600;letter-spacing:.12em;
   text-transform:uppercase;color:var(--ink-muted);margin-bottom:12px
 }
+
+/* Selector de tema */
+.theme-toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.theme-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;border-radius:12px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  cursor:pointer;transition:all .18s;
+  font-family:'Source Sans 3',sans-serif;
+}
+.theme-btn:hover{border-color:rgba(124,127,255,.4)}
+.theme-btn.active{background:var(--accent-l);border-color:var(--accent)}
+.theme-icon{font-size:1.2rem;line-height:1}
+.theme-label{font-size:.85rem;font-weight:600;color:var(--ink)}
+.theme-btn.active .theme-label{color:var(--accent)}
 
 /* Selector de tamaño de texto */
 .font-size-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -799,6 +836,20 @@ header{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
+    <div class="settings-section">
+      <div class="settings-section-label">Tema</div>
+      <div class="theme-toggle-row">
+        <button class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-label">Oscuro</span>
+        </button>
+        <button class="theme-btn" data-theme-val="light" onclick="setTheme('light')">
+          <span class="theme-icon">☀️</span>
+          <span class="theme-label">Claro</span>
+        </button>
+      </div>
+    </div>
+
     <div class="settings-section">
       <div class="settings-section-label">Tamaño de texto</div>
       <div class="font-size-grid">
@@ -1479,6 +1530,34 @@ async function init() {
 }
 
 // ════════════════════════════════════
+// AJUSTES — TEMA (CLARO / OSCURO)
+// ════════════════════════════════════
+const THEME_KEY = 'habla_theme_v1';
+
+function setTheme(val) {
+  const root = document.documentElement;
+  if (val === 'light') {
+    root.setAttribute('data-theme', 'light');
+  } else {
+    root.removeAttribute('data-theme');
+  }
+  localStorage.setItem(THEME_KEY, val);
+  // Actualizar botones activos
+  document.querySelectorAll('.theme-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.themeVal === val)
+  );
+  // Actualizar theme-color del meta para la barra del navegador
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.content = val === 'light' ? '#ffffff' : '#0d0d1a';
+}
+
+// Aplicar tema guardado al arrancar (antes de cualquier render)
+(function() {
+  const saved = localStorage.getItem(THEME_KEY) || 'dark';
+  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+})();
+
+// ════════════════════════════════════
 // AJUSTES — TAMAÑO DE TEXTO
 // ════════════════════════════════════
 const FS_KEY = 'habla_fontsize_v1';
@@ -1494,9 +1573,15 @@ function setFontSize(size) {
 
 function openSettings() {
   document.getElementById('settingsOverlay').classList.add('open');
-  const saved = localStorage.getItem(FS_KEY) || 'normal';
+  // Marcar tamaño activo
+  const savedFs = localStorage.getItem(FS_KEY) || 'normal';
   document.querySelectorAll('.font-size-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.size === saved)
+    b.classList.toggle('active', b.dataset.size === savedFs)
+  );
+  // Marcar tema activo
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  document.querySelectorAll('.theme-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.themeVal === savedTheme)
   );
 }
 
