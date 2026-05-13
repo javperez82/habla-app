@@ -1297,26 +1297,35 @@ function loadEp(ep) {
 
   audioEl.pause();
   audioEl.src = src;
-  audioEl.load();
+  // iOS Safari fix: NO llamar load() antes de play()
+  // load() rompe la cadena del gesto del usuario en Safari
   document.getElementById('progressBar').style.width = '0%';
   document.getElementById('timeNow').textContent   = '0:00';
   document.getElementById('timeTotal').textContent = '0:00';
 
   const prog = getProgress(ep.id);
-  audioEl.addEventListener('loadedmetadata', function onMeta() {
-    audioEl.removeEventListener('loadedmetadata', onMeta);
-    if (prog && prog.pos > 5 && !prog.done) {
-      audioEl.currentTime = prog.pos;
-    }
-  });
 
+  // Seek al progreso guardado cuando haya suficientes datos cargados
+  if (prog && prog.pos > 5 && !prog.done) {
+    const seekOnReady = () => {
+      audioEl.removeEventListener('canplay', seekOnReady);
+      if (audioEl.currentTime < 2) audioEl.currentTime = prog.pos;
+    };
+    audioEl.addEventListener('canplay', seekOnReady);
+  }
+
+  // play() llamado sincrónicamente — iOS exige que esté en la misma
+  // pila de llamadas que el tap del usuario
   const p = audioEl.play();
   if (p !== undefined) {
     p.then(() => {
       setPlaying(true);
       startAutoSave();
       updateMediaSession(ep);
-    }).catch(err => { console.warn('Autoplay blocked:', err); setPlaying(false); });
+    }).catch(err => {
+      console.warn('Autoplay blocked:', err);
+      setPlaying(false);
+    });
   } else {
     setPlaying(true);
     startAutoSave();
