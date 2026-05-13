@@ -1016,7 +1016,7 @@ function renderPersonasList(filtro) {
     var activo = personajeActivo && personajeActivo.id === p.id ? ' active' : '';
     var foto   = p.foto_url ? '<img src="' + escHtml(p.foto_url) + '" alt="">' : '🎭';
     var eps    = (p.episodios_ids||[]).length;
-    return '<div class="persona-row' + activo + '" onclick="seleccionarPersonaje('' + p.id + '')">' +
+    return '<div class="persona-row' + activo + '" onclick="seleccionarPersonaje(\'' + p.id + '\')">' +
       '<div class="persona-thumb">' + foto + '</div>' +
       '<div class="persona-row-info"><strong>' + escHtml(p.nombre) + '</strong><span>' + escHtml(p.rol||'Sin rol') + ' · ' + eps + ' ep' + (eps!==1?'s':'') + '</span></div>' +
       (p.slug ? '<span class="persona-slug-badge">/' + escHtml(p.slug) + '</span>' : '') +
@@ -1129,7 +1129,7 @@ function renderPEpisodios() {
   return episodiosAll.map(function(ep) {
     var checked = (personajeActivo.episodios_ids||[]).includes(ep.id) ? 'checked' : '';
     return '<label class="p-ep-check">' +
-      '<input type="checkbox" value="' + ep.id + '" ' + checked + ' onchange="pToggleEp('' + ep.id + '')">' +
+      '<input type="checkbox" value="' + ep.id + '" ' + checked + ' onchange="pToggleEp(\'' + ep.id + '\')">' +
       '<div><strong>' + escHtml(ep.titulo) + '</strong><span>' + escHtml(ep.categoria||'') + ' · ' + escHtml(ep.duracion||'') + '</span></div>' +
       '</label>';
   }).join('');
