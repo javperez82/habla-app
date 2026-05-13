@@ -391,6 +391,27 @@ textarea.p-ctrl{resize:vertical;min-height:70px;line-height:1.5}
       </div>
     </div>
 
+    <!-- VISTA PERSONAJES -->
+    <div class="view-personajes" id="viewPersonajes">
+      <div class="personas-layout">
+        <aside class="personas-sidebar">
+          <div class="personas-sidebar-top">
+            <input class="personas-search" id="personasSearch" placeholder="Buscar..." oninput="filtrarPersonas()">
+            <button class="btn btn-primary" style="padding:7px 11px;font-size:.73rem" onclick="nuevoPersonaje()">+ Nuevo</button>
+          </div>
+          <div class="personas-list" id="personasList"></div>
+        </aside>
+        <div class="personas-detail" id="personasDetail">
+          <div class="personas-empty" id="personasEmpty">
+            <div class="big-icon">&#127917;</div>
+            <h3>Selecciona un personaje</h3>
+            <p>O crea uno nuevo para gestionar su perfil.</p>
+          </div>
+          <div id="personasForm" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="content">
       <!-- Stats -->
       <div class="stats-bar">
@@ -552,28 +573,6 @@ textarea.p-ctrl{resize:vertical;min-height:70px;line-height:1.5}
           Publicar
         </button>
       </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- VISTA PERSONAJES -->
-<div class="view-personajes" id="viewPersonajes">
-  <div class="personas-layout">
-    <aside class="personas-sidebar">
-      <div class="personas-sidebar-top">
-        <input class="personas-search" id="personasSearch" placeholder="Buscar..." oninput="filtrarPersonas()">
-        <button class="btn btn-primary" style="padding:7px 11px;font-size:.73rem" onclick="nuevoPersonaje()">+ Nuevo</button>
-      </div>
-      <div class="personas-list" id="personasList"></div>
-    </aside>
-    <div class="personas-detail" id="personasDetail">
-      <div class="personas-empty" id="personasEmpty">
-        <div class="big-icon">&#127917;</div>
-        <h3>Selecciona un personaje</h3>
-        <p>O crea uno nuevo para gestionar su perfil.</p>
-      </div>
-      <div id="personasForm" style="display:none"></div>
     </div>
   </div>
 </div>
