@@ -1,0 +1,405 @@
+<title>Encuesta de habilidades blandas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: una sola columna de lectura (720px) con barra fija de avance arriba y navegación al pie de cada página. */
+:root {
+  --bg: #EDF1EF;
+  --surface: #FFFFFF;
+  --ink: #14201D;
+  --muted: #586864;
+  --line: #D3DCD8;
+  --accent: #0B6E5F;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DBEDE8;
+  --alert: #A8481A;
+  --alert-soft: #F7E4D6;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", "Segoe UI", sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1514; --surface: #17201E; --ink: #E7EEEB; --muted: #9BACA7; --line: #2A3835;
+    --accent: #56C7B2; --accent-ink: #06211C; --accent-soft: #16322D;
+    --alert: #F2A772; --alert-soft: #3B2616; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1514; --surface: #17201E; --ink: #E7EEEB; --muted: #9BACA7; --line: #2A3835;
+  --accent: #56C7B2; --accent-ink: #06211C; --accent-soft: #16322D;
+  --alert: #F2A772; --alert-soft: #3B2616; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-inline: 16px; }
+.bar-in { max-width: 720px; margin-inline: auto; padding-block: 10px; display: flex; flex-direction: column; gap: 8px; }
+.bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tag { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--alert); background: var(--alert-soft); padding: 3px 8px; border-radius: 4px; }
+.where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+.steps { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.step { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.step[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.step.extra { border-style: dashed; }
+
+.wrap { max-width: 752px; margin-inline: auto; padding-inline: 16px; padding-block: 24px 48px; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 5vw, 34px); line-height: 1.12; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--font-display); font-weight: 500; font-size: 19px; line-height: 1.25; margin: 0; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 65ch; }
+.head { display: flex; flex-direction: column; gap: 8px; }
+.intro { display: flex; flex-direction: column; gap: 10px; max-width: 65ch; }
+.note { font-size: 14px; color: var(--muted); border-left: 3px solid var(--alert); padding-left: 10px; max-width: 65ch; }
+
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.q.bad { border-color: var(--alert); }
+.q-title { font-weight: 600; }
+.req { color: var(--alert); font-weight: 700; }
+.q-help { font-size: 14px; color: var(--muted); }
+.err { font-size: 14px; color: var(--alert); font-weight: 600; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opt { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; min-width: 0; }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.opt:has(input:disabled) { opacity: .45; cursor: not-allowed; }
+.opt input { margin-top: 4px; accent-color: var(--accent); flex: none; }
+.opt span { min-width: 0; overflow-wrap: anywhere; }
+.field { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+textarea.field { min-height: 96px; resize: vertical; }
+.other { margin-left: 34px; width: calc(100% - 34px); }
+.count { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.skill { display: flex; flex-direction: column; gap: 10px; }
+.skill-head { display: flex; flex-direction: column; gap: 2px; padding-top: 8px; }
+.skill-def { color: var(--muted); max-width: 65ch; }
+
+.nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 10px 18px; font-weight: 600; cursor: pointer; }
+.btn.main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.link { border: 0; background: none; color: var(--accent); padding: 4px 0; text-decoration: underline; font-weight: 600; align-self: flex-start; text-align: left; }
+
+.scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.crit { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.crit-bar { width: 70px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; flex: none; }
+.crit-bar i { display: block; height: 100%; background: var(--accent); }
+.pill { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pill.first { background: var(--alert-soft); border-color: var(--alert); color: var(--alert); }
+.pill.keep { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.star { color: var(--accent); font-weight: 700; }
+.legend { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; max-width: 65ch; }
+</style>
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="bar-top">
+      <span class="tag">Vista previa · no guarda respuestas</span>
+      <span class="where" id="where"></span>
+    </div>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    <nav class="steps" id="steps" aria-label="Páginas de la encuesta"></nav>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  var HABILIDADES = [
+    ['Trabajo en equipo y colaboración', 'Apoya a sus compañeros cuando lo necesitan y cumple su parte para que el equipo logre la meta.'],
+    ['Solución de problemas y toma de decisiones', 'Identifica la causa de un problema y decide qué hacer dentro de lo que le corresponde, sin esperar a que otro lo resuelva.'],
+    ['Orientación al cliente', 'Atiende al cliente con cortesía y resuelve su necesidad o lo canaliza con quien puede resolverla.'],
+    ['Creatividad', 'Propone formas nuevas o más sencillas de hacer su trabajo.'],
+    ['Autorregulación emocional y manejo del estrés', 'Mantiene la calma y el trato respetuoso bajo presión o ante una persona molesta.'],
+    ['Comunicación clara y escucha', 'Explica lo que necesita con claridad y confirma que entendió lo que le dijeron antes de actuar.'],
+    ['Liderazgo e influencia', 'Orienta a sus compañeros, da el ejemplo y logra que otros lo sigan.'],
+    ['Adaptabilidad al cambio', 'Acepta cambios de tarea, horario o procedimiento y se ajusta sin bajar su desempeño.'],
+    ['Aprendizaje continuo', 'Pregunta, pide retroalimentación y aplica en su trabajo lo que aprende.'],
+    ['Profesionalismo, responsabilidad y ética de trabajo', 'Llega a tiempo, cumple lo que promete, respeta las reglas y reconoce sus errores.'],
+    ['Negociación y manejo de conflictos', 'Resuelve desacuerdos con compañeros o clientes buscando un acuerdo, sin agredir ni evadir.'],
+    ['Resiliencia y tolerancia a la frustración', 'Se repone de un error o de un mal día y vuelve a intentarlo.'],
+    ['Iniciativa', 'Hace lo que se necesita sin que se lo pidan y propone mejoras.']
+  ];
+  var FREC = ['1. Casi nunca', '2. Alguna vez al mes', '3. Cada semana', '4. Varias veces por semana', '5. En cada jornada'];
+  var CONS = ['1. No se nota', '2. Molestia menor entre compañeros', '3. Retrabajo o quejas', '4. Se afecta el resultado del área o hay un conflicto serio', '5. Se pierde al cliente o hay que separar al trabajador'];
+  var NIVEL = ['1. Casi nadie la muestra', '2. Pocos la muestran', '3. La mitad la muestra', '4. La mayoría la muestra', '5. Casi todos la muestran de forma constante', 'No lo observo directamente'];
+  var GRUPOS = [[0, 4], [4, 7], [7, 10], [10, 13]];
+
+  function skillQs(i) {
+    var n = HABILIDADES[i][0];
+    return [
+      { id: 'h' + i + '_f', type: 'radio', title: n + ': ¿con qué frecuencia la exige el puesto?', options: FREC, required: true },
+      { id: 'h' + i + '_c', type: 'radio', title: n + ': si el trabajador no la tiene, ¿qué pasa?', options: CONS, required: true },
+      { id: 'h' + i + '_n', type: 'radio', title: n + ': ¿cómo la observa hoy en el personal de ese puesto?', options: NIVEL, required: true }
+    ];
+  }
+
+  var PAGES = [
+    { short: 'Inicio', title: 'Habilidades blandas en el personal operativo', intro: [
+        'Esta encuesta forma parte de una investigación del Doctorado en Educación y Liderazgo de Instituciones de la Universidad Corporativa del Sureste. Busca identificar qué habilidades blandas necesitan más las empresas en su personal operativo.',
+        'Contestarla toma menos de 10 minutos. Su participación es voluntaria y anónima: no se piden nombres de personas ni de la empresa, y puede abandonarla en cualquier momento. La información se usará solo con fines académicos y se reportará de forma agregada.',
+        'Responsable: Javier Alejandro Pérez Ramón.'],
+      qs: [{ id: 'consent', type: 'radio', title: '¿Acepta participar en esta encuesta?', help: 'Al aceptar confirma que leyó la presentación y que participa de forma voluntaria.', options: ['Sí, acepto participar', 'No acepto'], required: true }] },
+    { short: 'Perfil', title: 'Sobre usted y su empresa', lead: 'Seis preguntas para clasificar las respuestas. Ninguna lo identifica.',
+      qs: [
+        { id: 'sector', type: 'select', title: '¿A qué sector pertenece su empresa?', options: ['Comercio al por menor (retail)', 'Comercio al por mayor', 'Manufactura', 'Construcción', 'Restaurantes, hoteles y turismo', 'Transporte y logística', 'Salud', 'Educación', 'Servicios financieros', 'Tecnología', 'Gobierno', 'Otro'], required: true },
+        { id: 'tamano', type: 'radio', title: '¿Cuántas personas trabajan en su empresa?', options: ['1 a 10', '11 a 50', '51 a 250', 'Más de 250'], required: true },
+        { id: 'cargo', type: 'radio', title: '¿Cuál es su cargo?', options: ['Alta dirección (dueño, director general o equivalente)', 'Gerencia', 'Jefatura o supervisión', 'Recursos humanos o capacitación'], other: true, required: true },
+        { id: 'acargo', type: 'radio', title: '¿Cuántas personas tiene a su cargo?', options: ['Ninguna', '1 a 5', '6 a 20', '21 a 50', 'Más de 50'], required: true },
+        { id: 'antig', type: 'radio', title: '¿Cuánto tiempo lleva en su cargo actual?', options: ['Menos de 1 año', '1 a 3 años', '4 a 10 años', 'Más de 10 años'], required: true },
+        { id: 'ciudad', type: 'text', title: '¿En qué ciudad y estado trabaja?', required: true }
+      ] },
+    { short: 'Puesto', title: 'Puesto de referencia', lead: 'Piense en el puesto operativo que mejor conoce dentro de su empresa. Todas las preguntas siguientes se refieren al personal que ocupa ese puesto.',
+      qs: [{ id: 'puesto', type: 'radio', title: '¿Sobre qué puesto operativo va a contestar?', options: ['Atención al cliente o cajas', 'Ventas o piso de venta', 'Almacén, reparto o logística', 'Producción u operación', 'Administrativo o de oficina'], other: true, required: true }] }
+  ];
+  GRUPOS.forEach(function (g, k) {
+    PAGES.push({ short: 'Habilidades ' + (k + 1), title: 'Habilidades (' + (k + 1) + ' de 4)',
+      lead: 'Para cada habilidad hay tres preguntas: con qué frecuencia la exige el puesto, qué pasa si falta y cómo la observa hoy en su personal. Lea la descripción de cada habilidad antes de contestar.',
+      skills: [g[0], g[1]] });
+  });
+  PAGES.push({ short: 'Cinco críticas', title: 'Las cinco más críticas', lead: 'Si solo pudiera asegurar cinco habilidades en el personal de ese puesto, ¿cuáles serían?',
+    qs: [{ id: 'top5', type: 'check', title: 'Marque exactamente cinco habilidades', options: HABILIDADES.map(function (h) { return h[0]; }), exact: 5, required: true }] });
+  PAGES.push({ short: 'Cierre', title: 'Para terminar', lead: 'Últimas preguntas.',
+    qs: [
+      { id: 'caso', type: 'textarea', title: 'Opcional: cuente un caso reciente en que la falta de una de estas habilidades le costó algo a la empresa.', help: 'No mencione nombres de personas.' },
+      { id: 'momento', type: 'radio', title: '¿En qué momento podría un trabajador de ese puesto escuchar un audio de hasta 15 minutos?', options: ['Al inicio de la jornada', 'Durante un descanso', 'Al cierre de la jornada', 'En el traslado al trabajo', 'Fuera del horario laboral', 'No veo un momento viable'], other: true, required: true },
+      { id: 'via', type: 'radio', title: '¿Cómo le llegó esta encuesta?', options: ['Me la envió directamente el investigador', 'Me la reenvió un colega', 'Por un grupo de mensajería o red social'], other: true, required: true },
+      { id: 'llamada', type: 'radio', title: '¿Aceptaría una llamada de 20 minutos para profundizar en sus respuestas?', help: 'Si acepta, se le pedirá un teléfono. Ese dato se guarda aparte de sus respuestas.', options: ['Sí', 'No'], required: true, rerender: true },
+      { id: 'telefono', type: 'tel', title: 'Teléfono para la llamada', help: 'Escriba al menos 10 dígitos.', required: true, when: function () { return state.a.llamada === 'Sí'; } },
+      { id: 'correo', type: 'email', title: 'Opcional: correo electrónico', help: 'Déjelo solo si quiere recibir el resumen de resultados. Se guardará aparte de sus respuestas al analizar los datos.' }
+    ] });
+  var RESULT = PAGES.length;       // página extra, solo de la vista previa
+  var FORM_PAGES = PAGES.length;
+
+  var EJEMPLO = [[5,4,4],[4,4,2],[5,5,3],[2,2,3],[4,4,2],[5,4,2],[2,3,3],[4,3,3],[3,3,3],[5,5,4],[3,4,2],[3,3,3],[4,3,2]];
+  var EJEMPLO_TOP = [2, 5, 9, 0, 4];
+
+  var state = { page: 0, a: {}, other: {}, errors: {}, ejemplo: false, declined: false };
+  var boot = (window.claude && window.claude.hot && window.claude.hot.data) || null;
+  if (boot && boot.a) { state = boot; state.errors = {}; }
+
+  var app = document.getElementById('app');
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function pageQs(p) {
+    if (p.skills) { var out = []; for (var i = p.skills[0]; i < p.skills[1]; i++) out = out.concat(skillQs(i)); return out; }
+    return (p.qs || []).filter(function (q) { return !q.when || q.when(); });
+  }
+  function answered(q) {
+    var v = state.a[q.id];
+    if (q.type === 'check') return (v || []).length === q.exact;
+    if (v === '__otro') return !!(state.other[q.id] || '').trim();
+    return v != null && String(v).trim() !== '';
+  }
+  function validate(p) {
+    var bad = {};
+    pageQs(p).forEach(function (q) {
+      if (q.required && !answered(q)) bad[q.id] = q.type === 'check' ? 'Marque exactamente cinco opciones.' : 'Esta pregunta es obligatoria.';
+      if (q.type === 'email' && state.a[q.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.a[q.id])) bad[q.id] = 'Escriba un correo válido.';
+      if (q.type === 'tel' && state.a[q.id] && String(state.a[q.id]).replace(/\D/g, '').length < 10) bad[q.id] = 'Escriba un teléfono de al menos 10 dígitos.';
+    });
+    return bad;
+  }
+
+  function renderQ(q) {
+    var box = el('section', 'q' + (state.errors[q.id] ? ' bad' : ''));
+    box.id = 'q_' + q.id;
+    var t = el('div', 'q-title', q.title);
+    if (q.required) { t.appendChild(document.createTextNode(' ')); t.appendChild(el('span', 'req', '*')); }
+    box.appendChild(t);
+    if (q.help) box.appendChild(el('div', 'q-help', q.help));
+
+    if (q.type === 'radio' || q.type === 'check') {
+      var opts = el('div', 'opts');
+      var list = q.options.slice(); if (q.other) list.push('__otro');
+      var counter = null, inputs = [];
+      function syncCheck() {
+        var n = (state.a[q.id] || []).length, full = n >= q.exact;
+        inputs.forEach(function (x) { x.disabled = full && !x.checked; });
+        if (counter) counter.textContent = n + ' de ' + q.exact + ' marcadas' + (full ? '. Para cambiar una, desmarque otra primero.' : '');
+      }
+      list.forEach(function (o, k) {
+        var lab = el('label', 'opt'), inp = document.createElement('input');
+        inp.type = q.type === 'check' ? 'checkbox' : 'radio'; inp.name = q.id; inp.id = q.id + '_' + k; inp.value = o;
+        if (q.type === 'check') inp.checked = (state.a[q.id] || []).indexOf(o) >= 0; else inp.checked = state.a[q.id] === o;
+        inputs.push(inp);
+        inp.addEventListener('change', function () {
+          if (q.type === 'check') {
+            var cur = (state.a[q.id] || []).slice(), at = cur.indexOf(o);
+            if (inp.checked && at < 0) { if (cur.length >= q.exact) { inp.checked = false; return; } cur.push(o); }
+            if (!inp.checked && at >= 0) cur.splice(at, 1);
+            state.a[q.id] = cur; syncCheck();
+          } else {
+            state.a[q.id] = o;
+            if (q.rerender) {
+              if (q.id === 'llamada' && o !== 'Sí') delete state.a.telefono;
+              state.errors = {}; render();
+              var same = document.getElementById(inp.id); if (same) same.focus();
+            }
+          }
+          state.ejemplo = false;
+        });
+        lab.appendChild(inp); lab.appendChild(el('span', null, o === '__otro' ? 'Otro:' : o)); opts.appendChild(lab);
+      });
+      box.appendChild(opts);
+      if (q.other) {
+        var ot = document.createElement('input'); ot.type = 'text'; ot.className = 'field other'; ot.id = q.id + '_otro';
+        ot.setAttribute('aria-label', 'Otro, especifique'); ot.placeholder = 'Especifique'; ot.value = state.other[q.id] || '';
+        ot.addEventListener('input', function () { state.other[q.id] = ot.value; if (ot.value) { state.a[q.id] = '__otro'; var r = document.getElementById(q.id + '_' + (list.length - 1)); if (r) r.checked = true; } });
+        box.appendChild(ot);
+      }
+      if (q.type === 'check') { counter = el('div', 'count', ''); counter.setAttribute('aria-live', 'polite'); box.appendChild(counter); syncCheck(); }
+    } else if (q.type === 'select') {
+      var s = document.createElement('select'); s.className = 'field'; s.id = q.id; s.setAttribute('aria-label', q.title);
+      var first = el('option', null, 'Elegir'); first.value = ''; s.appendChild(first);
+      q.options.forEach(function (o) { var op = el('option', null, o); op.value = o; s.appendChild(op); });
+      s.value = state.a[q.id] || ''; s.addEventListener('change', function () { state.a[q.id] = s.value; });
+      box.appendChild(s);
+    } else {
+      var f = document.createElement(q.type === 'textarea' ? 'textarea' : 'input');
+      if (q.type !== 'textarea') f.type = (q.type === 'email' || q.type === 'tel') ? q.type : 'text';
+      if (q.type === 'tel') f.setAttribute('inputmode', 'tel');
+      f.className = 'field'; f.id = q.id; f.setAttribute('aria-label', q.title); f.placeholder = 'Tu respuesta'; f.value = state.a[q.id] || '';
+      f.addEventListener('input', function () { state.a[q.id] = f.value; });
+      box.appendChild(f);
+    }
+    if (state.errors[q.id]) box.appendChild(el('div', 'err', state.errors[q.id]));
+    return box;
+  }
+
+  function resultados() {
+    var rows = HABILIDADES.map(function (h, i) {
+      var f = parseInt(state.a['h' + i + '_f'], 10), c = parseInt(state.a['h' + i + '_c'], 10), n = parseInt(state.a['h' + i + '_n'], 10);
+      return { nombre: h[0], f: f, c: c, crit: (f && c) ? f * c : null, n: isNaN(n) ? null : n, top: (state.a.top5 || []).indexOf(h[0]) >= 0 };
+    });
+    var vals = rows.map(function (r) { return r.crit; }).filter(function (v) { return v != null; }).sort(function (a, b) { return a - b; });
+    var med = vals.length ? (vals.length % 2 ? vals[(vals.length - 1) / 2] : (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2) : null;
+    rows.forEach(function (r) {
+      if (r.crit == null) { r.lectura = 'Sin contestar'; r.cls = ''; return; }
+      var alta = r.crit > med;
+      if (r.n == null) { r.lectura = alta ? 'Criticidad alta, sin dato de nivel' : 'Sin dato de nivel'; r.cls = ''; return; }
+      var bajo = r.n <= 3;
+      r.lectura = alta ? (bajo ? 'Primero en la ruta' : 'Mantener y reconocer') : (bajo ? 'Después, si hay tiempo' : 'Sin acción');
+      r.cls = alta ? (bajo ? 'first' : 'keep') : '';
+    });
+    rows.sort(function (a, b) { return (b.crit || 0) - (a.crit || 0) || (b.top - a.top) || ((a.n || 9) - (b.n || 9)); });
+    return { rows: rows, med: med, n: vals.length };
+  }
+
+  function renderResult() {
+    var R = resultados();
+    var head = el('div', 'head');
+    head.appendChild(el('h1', null, 'Lectura de resultados'));
+    head.appendChild(el('p', 'lead', 'Esta página no forma parte de la encuesta. Muestra cómo se leerían las respuestas de una persona: la criticidad es frecuencia por consecuencia, y se cruza con el nivel actual.'));
+    app.appendChild(head);
+    if (state.ejemplo) app.appendChild(el('p', 'note', 'Respuestas de ejemplo: los valores son ilustrativos, no datos reales.'));
+    if (!R.n) {
+      app.appendChild(el('p', 'note', 'Todavía no hay calificaciones. Conteste las páginas de habilidades o cargue el ejemplo.'));
+    } else {
+      var sc = el('div', 'scroll'), tb = document.createElement('table');
+      tb.innerHTML = '<thead><tr><th>Habilidad</th><th class="num">Frec.</th><th class="num">Cons.</th><th class="num">Criticidad</th><th class="num">Nivel</th><th>Lectura</th></tr></thead>';
+      var body = document.createElement('tbody');
+      R.rows.forEach(function (r) {
+        var tr = document.createElement('tr');
+        var td = el('td', null, r.nombre); if (r.top) { td.appendChild(document.createTextNode(' ')); td.appendChild(el('span', 'star', '●')); }
+        tr.appendChild(td);
+        tr.appendChild(el('td', 'num', r.f || '–')); tr.appendChild(el('td', 'num', r.c || '–'));
+        var tc = el('td', 'num'), w = el('div', 'crit'), bar = el('div', 'crit-bar'), fill = document.createElement('i');
+        fill.style.width = (r.crit ? r.crit / 25 * 100 : 0) + '%'; bar.appendChild(fill); w.appendChild(bar); w.appendChild(el('span', null, r.crit == null ? '–' : r.crit)); tc.appendChild(w); tr.appendChild(tc);
+        tr.appendChild(el('td', 'num', r.n == null ? '–' : r.n));
+        var tl = el('td'); tl.appendChild(el('span', 'pill ' + r.cls, r.lectura)); tr.appendChild(tl);
+        body.appendChild(tr);
+      });
+      tb.appendChild(body); sc.appendChild(tb); app.appendChild(sc);
+      var lg = el('div', 'legend');
+      lg.appendChild(el('span', null, 'Mediana de criticidad de esta persona: ' + R.med + '. Por encima de ella, la criticidad se considera alta.'));
+      lg.appendChild(el('span', null, 'Nivel actual de 1 a 3 se considera bajo; 4 y 5, alto.'));
+      lg.appendChild(el('span', null, '● Habilidad marcada entre las cinco más críticas; se usa para desempatar.'));
+      app.appendChild(lg);
+    }
+    var nav = el('div', 'nav'), back = el('button', 'btn', 'Volver a la encuesta'); back.type = 'button';
+    back.addEventListener('click', function () { go(FORM_PAGES - 1); }); nav.appendChild(back);
+    var again = el('button', 'btn', 'Borrar respuestas'); again.type = 'button';
+    again.addEventListener('click', function () { state = { page: 0, a: {}, other: {}, errors: {}, ejemplo: false, declined: false }; render(); });
+    nav.appendChild(again); app.appendChild(nav);
+  }
+
+  function renderBar() {
+    var steps = document.getElementById('steps'); steps.textContent = '';
+    PAGES.forEach(function (p, i) { steps.appendChild(stepBtn(p.short, i, false)); });
+    steps.appendChild(stepBtn('Lectura de resultados', RESULT, true));
+    var inForm = state.page < FORM_PAGES;
+    document.getElementById('where').textContent = inForm ? 'Página ' + (state.page + 1) + ' de ' + FORM_PAGES : 'Fuera de la encuesta';
+    document.getElementById('fill').style.width = (inForm ? (state.page + 1) / FORM_PAGES * 100 : 100) + '%';
+    var cur = steps.querySelector('[aria-current="true"]');
+    if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+  function stepBtn(label, i, extra) {
+    var b = el('button', 'step' + (extra ? ' extra' : ''), label); b.type = 'button'; b.id = 'step_' + i;
+    if (state.page === i) b.setAttribute('aria-current', 'true');
+    b.addEventListener('click', function () { state.declined = false; go(i); });
+    return b;
+  }
+
+  function render() {
+    app.textContent = ''; renderBar();
+    if (state.declined) {
+      var h = el('div', 'head'); h.appendChild(el('h1', null, 'Encuesta terminada'));
+      h.appendChild(el('p', 'lead', 'Al elegir "No acepto", el formulario se cierra aquí y no registra ninguna respuesta.')); app.appendChild(h);
+      var n0 = el('div', 'nav'), b0 = el('button', 'btn', 'Volver al inicio'); b0.type = 'button';
+      b0.addEventListener('click', function () { state.declined = false; delete state.a.consent; go(0); }); n0.appendChild(b0); app.appendChild(n0);
+      return;
+    }
+    if (state.page === RESULT) { renderResult(); return; }
+    var p = PAGES[state.page];
+    var head = el('div', 'head'); head.appendChild(el(state.page === 0 ? 'h1' : 'h2', null, p.title));
+    if (p.lead) head.appendChild(el('p', 'lead', p.lead)); app.appendChild(head);
+    if (p.intro) { var it = el('div', 'intro'); p.intro.forEach(function (t) { it.appendChild(el('p', null, t)); }); app.appendChild(it); }
+    if (state.page === 0) {
+      var ex = el('button', 'btn link', 'Llenar con respuestas de ejemplo y ver la lectura de resultados'); ex.type = 'button'; ex.id = 'btn_ejemplo';
+      ex.addEventListener('click', cargarEjemplo); app.appendChild(ex);
+    }
+    if (p.skills) {
+      for (var i = p.skills[0]; i < p.skills[1]; i++) {
+        var sk = el('div', 'skill'), sh = el('div', 'skill-head');
+        sh.appendChild(el('h3', null, HABILIDADES[i][0])); sh.appendChild(el('p', 'skill-def', HABILIDADES[i][1])); sk.appendChild(sh);
+        skillQs(i).forEach(function (q) { sk.appendChild(renderQ(q)); }); app.appendChild(sk);
+      }
+    } else { pageQs(p).forEach(function (q) { app.appendChild(renderQ(q)); }); }
+    var nav = el('div', 'nav');
+    var back = el('button', 'btn', 'Atrás'); back.type = 'button'; back.id = 'btn_atras'; back.hidden = state.page === 0;
+    back.addEventListener('click', function () { go(state.page - 1); }); nav.appendChild(back);
+    var next = el('button', 'btn main', state.page === FORM_PAGES - 1 ? 'Enviar' : 'Siguiente'); next.type = 'button'; next.id = 'btn_siguiente';
+    next.addEventListener('click', function () {
+      state.errors = validate(p);
+      var ids = Object.keys(state.errors);
+      if (ids.length) { render(); var first = document.getElementById('q_' + ids[0]); if (first) first.scrollIntoView({ block: 'center' }); return; }
+      if (state.page === 0 && state.a.consent === 'No acepto') { state.declined = true; render(); window.scrollTo(0, 0); return; }
+      go(state.page + 1);
+    });
+    nav.appendChild(next); app.appendChild(nav);
+    if (state.page === FORM_PAGES - 1) app.appendChild(el('p', 'note', 'En el formulario real, "Enviar" registra la respuesta y muestra un agradecimiento. Aquí lleva a la lectura de resultados.'));
+  }
+  function go(i) { state.page = Math.max(0, Math.min(RESULT, i)); state.errors = {}; render(); window.scrollTo(0, 0); }
+
+  function cargarEjemplo() {
+    var a = { consent: 'Sí, acepto participar', sector: 'Comercio al por menor (retail)', tamano: '51 a 250', cargo: 'Gerencia', acargo: '21 a 50', antig: '4 a 10 años', ciudad: 'Villahermosa, Tabasco', puesto: 'Atención al cliente o cajas', momento: 'Al inicio de la jornada', via: 'Me la envió directamente el investigador', llamada: 'No' };
+    EJEMPLO.forEach(function (v, i) { a['h' + i + '_f'] = FREC[v[0] - 1]; a['h' + i + '_c'] = CONS[v[1] - 1]; a['h' + i + '_n'] = NIVEL[v[2] - 1]; });
+    a.top5 = EJEMPLO_TOP.map(function (i) { return HABILIDADES[i][0]; });
+    state.a = a; state.other = {}; state.ejemplo = true; state.declined = false; go(RESULT);
+  }
+
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(function () { return state; });
+  window.__encuesta = { state: function () { return state; }, resultados: resultados, cargarEjemplo: cargarEjemplo };
+  render();
+})();
+</script>

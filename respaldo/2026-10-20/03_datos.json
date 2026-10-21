@@ -1,0 +1,66 @@
+{
+  "proyecto": "rhbyyhciyiacjbmkqbnw (habla)",
+  "fecha_respaldo": "2026-10-20",
+  "tablas": {
+    "episodios": [
+      {
+        "id": 1,
+        "titulo": "Activa tu máximo potencial ahora",
+        "categoria": "crecimiento",
+        "duracion": "11:06 min",
+        "audio_url": "https://rhbyyhciyiacjbmkqbnw.supabase.co/storage/v1/object/public/audio/0001.mp3",
+        "descripcion": "Explora la importancia de la perseverancia, el esfuerzo sostenido y la mentalidad de crecimiento como pilares del éxito por encima del talento innato.",
+        "tags": [
+          "perseverancia",
+          "esfuerzo sostenido",
+          "mentalidad de crecimiento"
+        ],
+        "reflexion": "Piensa en algo que dejaste de intentar porque creíste que no eras suficientemente bueno para ello. ¿Qué pasaría si en lugar de verlo como una limitación, lo vieras como un punto de partida?",
+        "caso_titulo": "El caso de Marcos",
+        "caso_historia": "Marcos tiene 34 años y lleva 6 en la misma empresa como analista. Siempre creyó que sus compañeros que ascendían más rápido simplemente eran más inteligentes o tenían más talento natural. Cuando su jefa le ofreció liderar un proyecto nuevo, su primera reacción fue declinar.\n\nSin embargo, su jefa insistió y Marcos aceptó con miedo. Durante el proyecto cometió errores, pidió ayuda varias veces y tuvo que rehacer trabajo en dos ocasiones. Al final, el proyecto fue exitoso y Marcos recibió reconocimiento público.\n\nLo que cambió en Marcos no fue su talento, sino su disposición a persistir frente a la incomodidad.",
+        "caso_preguntas": [
+          "¿En qué momento Marcos demostró mentalidad de crecimiento en lugar de mentalidad fija?",
+          "¿Qué habrías hecho tú en su lugar cuando tu jefa te ofreció el proyecto?"
+        ],
+        "glosario": [
+          {
+            "termino": "Mentalidad de crecimiento",
+            "definicion": "La creencia de que nuestras habilidades pueden desarrollarse con esfuerzo y dedicación."
+          },
+          {
+            "termino": "Grit (Perseverancia)",
+            "definicion": "Combinación de pasión sostenida y perseverancia hacia metas a largo plazo."
+          },
+          {
+            "termino": "Mentalidad fija",
+            "definicion": "La creencia de que la inteligencia es inamovible. Lleva a evitar desafíos por miedo a demostrar limitaciones."
+          },
+          {
+            "termino": "Todavía no",
+            "definicion": "Reemplazar no puedo por todavía no puedo cambia el fracaso en una etapa del aprendizaje."
+          }
+        ],
+        "reto": "En la próxima situación donde sientas que no puedes hacer algo, di en voz alta: Todavía no puedo, pero puedo aprender.",
+        "estado": "publicado",
+        "orden": 1,
+        "creado_en": "2026-04-13T19:22:09.379346+00:00",
+        "actualizado_en": "2026-05-13T01:51:54.509198+00:00"
+      }
+    ],
+    "personajes": [],
+    "progreso": [],
+    "historial": [],
+    "capas_vistas": []
+  },
+  "storage": {
+    "audio": [
+      {
+        "archivo": "0001.mp3",
+        "bytes": 5333158,
+        "tipo": "audio/mpeg",
+        "subido": "2026-05-13T15:19:10Z"
+      }
+    ]
+  },
+  "auth_users": 1
+}
