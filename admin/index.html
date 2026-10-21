@@ -343,22 +343,6 @@ textarea.p-ctrl{resize:vertical;min-height:70px;line-height:1.5}
 .p-html-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border)}
 .p-html-head strong{font-size:.76rem;color:var(--ink)}
 .p-html-code{font-family:monospace;font-size:.66rem;padding:13px;overflow-x:auto;max-height:260px;overflow-y:auto;color:var(--ink-mid);line-height:1.5;white-space:pre}
-
-/* ── Inicio de sesión ── */
-.login{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
-.login[hidden]{display:none}
-.login-card{width:100%;max-width:360px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:32px 28px;display:flex;flex-direction:column;gap:14px}
-.login-card .logo{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:600;color:var(--ink)}
-.login-card .logo em{color:var(--accent);font-style:normal}
-.login-sub{color:var(--ink-muted);font-size:.85rem;margin-top:-8px}
-.login-card label{display:flex;flex-direction:column;gap:6px;font-size:.8rem;font-weight:500;color:var(--ink-mid)}
-.login-card input{font:inherit;font-size:.9rem;padding:10px 12px;border:1px solid var(--border-m);border-radius:8px;background:var(--surface);color:var(--ink)}
-.login-card input:focus{outline:2px solid var(--accent);outline-offset:1px}
-.login-error{color:var(--accent);font-size:.8rem;min-height:1.2em}
-.login-card .btn{justify-content:center;width:100%}
-.sesion{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-.sesion-correo{font-size:.72rem;color:var(--ink-mid);overflow-wrap:anywhere}
-.sesion-salir{background:none;border:none;padding:0;color:var(--accent);font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;text-align:left}
 </style>
 </head>
 <body>
@@ -392,13 +376,7 @@ textarea.p-ctrl{resize:vertical;min-height:70px;line-height:1.5}
         Usuarios
       </button>
     </nav>
-    <div class="sidebar-foot">
-      <div class="sesion">
-        <span class="sesion-correo" id="sesionCorreo"></span>
-        <button type="button" class="sesion-salir" onclick="cerrarSesionAdmin()">Cerrar sesión</button>
-      </div>
-      v0.10 · ha.bla CRM
-    </div>
+    <div class="sidebar-foot">v0.9 · ha.bla CRM</div>
   </aside>
 
   <!-- ── MAIN ── -->
@@ -614,22 +592,6 @@ textarea.p-ctrl{resize:vertical;min-height:70px;line-height:1.5}
 <!-- ── TOAST ── -->
 <div class="toast" id="toast"></div>
 
-<!-- ── INICIO DE SESIÓN ── -->
-<div class="login" id="loginView">
-  <form class="login-card" id="loginForm" autocomplete="on">
-    <div class="logo">ha<em>.</em>bla</div>
-    <div class="login-sub">Panel de administración</div>
-    <label>Correo
-      <input type="email" id="loginEmail" name="email" autocomplete="username" required/>
-    </label>
-    <label>Contraseña
-      <input type="password" id="loginPass" name="password" autocomplete="current-password" required/>
-    </label>
-    <div class="login-error" id="loginError" role="alert"></div>
-    <button type="submit" class="btn btn-primary" id="loginBtn">Entrar</button>
-  </form>
-</div>
-
 <script>
 // ══════════════════════════════════════════════════
 // CONFIGURACIÓN — reemplaza con tus credenciales
@@ -662,61 +624,8 @@ const LAYER_ICONS = {
   reflexion: '💭', caso: '📋', glosario: '📚', reto: '⚡'
 };
 
-// ── INIT: solo entra una cuenta administradora ────
-window.addEventListener('DOMContentLoaded', iniciarPanel);
-
-async function iniciarPanel() {
-  document.getElementById('loginForm').addEventListener('submit', enviarLogin);
-  var { data } = await sb.auth.getSession();
-  if (data && data.session) {
-    await entrarAdmin(data.session.user);
-  } else {
-    mostrarLogin('');
-  }
-}
-
-function mostrarLogin(mensaje) {
-  document.getElementById('loginView').hidden = false;
-  document.getElementById('loginError').textContent = mensaje || '';
-  document.getElementById('loginEmail').focus();
-}
-
-async function enviarLogin(e) {
-  e.preventDefault();
-  var btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.textContent = 'Entrando...';
-  document.getElementById('loginError').textContent = '';
-  var { data, error } = await sb.auth.signInWithPassword({
-    email: document.getElementById('loginEmail').value.trim(),
-    password: document.getElementById('loginPass').value
-  });
-  btn.disabled = false;
-  btn.textContent = 'Entrar';
-  if (error) {
-    mostrarLogin('Correo o contraseña incorrectos.');
-    return;
-  }
-  document.getElementById('loginPass').value = '';
-  await entrarAdmin(data.user);
-}
-
-async function entrarAdmin(user) {
-  var { data: esAdmin, error } = await sb.rpc('es_admin');
-  if (error || !esAdmin) {
-    await sb.auth.signOut();
-    mostrarLogin('Esta cuenta no tiene permisos de administración.');
-    return;
-  }
-  document.getElementById('loginView').hidden = true;
-  document.getElementById('sesionCorreo').textContent = user.email;
-  loadEpisodes();
-}
-
-async function cerrarSesionAdmin() {
-  await sb.auth.signOut();
-  location.reload();
-}
+// ── INIT ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadEpisodes);
 
 // ── CARGAR EPISODIOS ──────────────────────────────
 async function loadEpisodes() {
