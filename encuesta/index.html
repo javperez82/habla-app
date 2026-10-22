@@ -89,6 +89,22 @@ textarea.field { min-height: 96px; resize: vertical; }
 .sum-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
 .sum-row span:last-child { color: var(--muted); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
 .sum-date { font-size: 14px; color: var(--muted); }
+.rep { display: flex; flex-direction: column; gap: 12px; }
+.pri { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.pri-tit { font-size: 21px; }
+.pri-cat { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.pri-def { color: var(--ink); max-width: 65ch; }
+.mets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+.met { background: var(--bg); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.met-v { font-family: var(--font-display); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.met-l { font-size: 12px; color: var(--muted); }
+.chart { width: 100%; overflow-x: auto; }
+.chart svg { display: block; font-family: var(--font-body); }
+.sem { display: flex; flex-direction: column; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sem-h { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.sem-c { font-size: 13px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.sem-f { font-weight: 600; }
+@media (max-width: 340px) { .mets { grid-template-columns: 1fr; } }
 .acts { display: flex; flex-wrap: wrap; gap: 8px; }
 .acts .btn { flex: 1 1 160px; }
 .mail { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -396,155 +412,313 @@ textarea.field { min-height: 96px; resize: vertical; }
       });
     }
     var resumen = armarResumen(fila);
-    state = { done: true, page: LAST, a: {}, other: {}, variante: state.variante, errors: {}, resumen: resumen, correo: mail };
+    state = { done: true, page: LAST, a: {}, other: {}, variante: state.variante, errors: {}, resumen: resumen, correo: mail, grupo: null };
+    grupoPedido = false;
     save(); render(); window.scrollTo(0, 0);
   }
 
-  // ── Resumen para quien respondió (solo se guarda en su navegador) ──
+  // ── Reporte para quien respondió (solo se guarda en su navegador) ──
+  var CATEGORIA = {
+    comunicacion: 'Núcleo común', orientacion_cliente: 'Núcleo común', trabajo_equipo: 'Núcleo común',
+    profesionalismo: 'Núcleo común', adaptabilidad: 'Núcleo común',
+    autorregulacion: 'Refuerzo', solucion_problemas: 'Refuerzo', resiliencia: 'Refuerzo',
+    aprendizaje: 'Refuerzo', iniciativa: 'Refuerzo',
+    liderazgo: 'Supervisión', negociacion: 'Supervisión', creatividad: 'Supervisión'
+  };
+  var PLAN = {
+    comunicacion: ['Al asignar una tarea, pida al trabajador que repita con sus palabras lo que va a hacer.', 'Errores por instrucciones mal entendidas en la semana.'],
+    orientacion_cliente: ['Al inicio del turno, revise con el equipo una queja o un elogio real de un cliente.', 'Quejas y elogios de clientes registrados.'],
+    trabajo_equipo: ['Asigne una tarea que requiera a dos personas y reconozca en público la ayuda entre compañeros.', 'Veces que alguien pide o da apoyo sin que usted intervenga.'],
+    profesionalismo: ['Acuerde una regla concreta (puntualidad, uniforme, cierre de caja) y revise su cumplimiento al cierre.', 'Retardos y faltas a la regla acordada.'],
+    adaptabilidad: ['Anuncie los cambios con anticipación y explique en una frase por qué se hacen.', 'Tiempo que tarda el equipo en retomar el ritmo después de un cambio.'],
+    autorregulacion: ['Después de un incidente con un cliente molesto, converse dos minutos con el trabajador sobre qué hizo y qué funcionó.', 'Incidentes de trato descortés bajo presión.'],
+    solucion_problemas: ['Ante un problema, pregunte "¿qué harías tú?" antes de dar la solución.', 'Problemas resueltos sin escalar a usted.'],
+    resiliencia: ['Trate los errores como aprendizaje: pregunte qué se haría distinto antes de cualquier llamada de atención.', 'Errores que se repiten.'],
+    aprendizaje: ['En la junta, pida que alguien comparta algo que aplicó del episodio de la semana.', 'Aplicaciones del episodio que el equipo reporta.'],
+    iniciativa: ['Pida una mejora pequeña por semana y ponga en práctica al menos una.', 'Propuestas de mejora recibidas.'],
+    liderazgo: ['Asigne a un trabajador con experiencia como apoyo de un compañero nuevo durante una semana.', 'Compañeros nuevos que alcanzan el ritmo esperado.'],
+    negociacion: ['Cuando haya un desacuerdo, reúna a las partes y pida a cada una que proponga una solución.', 'Conflictos que llegan hasta usted.'],
+    creatividad: ['Reserve cinco minutos de la junta para recoger ideas sobre cómo simplificar una tarea.', 'Ideas propuestas y puestas a prueba.']
+  };
+  var grupoPedido = false;
+  var CORTO = { trabajo_equipo: 'Trabajo en equipo', solucion_problemas: 'Solución de problemas', orientacion_cliente: 'Orientación al cliente',
+    creatividad: 'Creatividad', autorregulacion: 'Autorregulación', comunicacion: 'Comunicación', liderazgo: 'Liderazgo',
+    adaptabilidad: 'Adaptabilidad', aprendizaje: 'Aprendizaje continuo', profesionalismo: 'Profesionalismo', negociacion: 'Negociación',
+    resiliencia: 'Resiliencia', iniciativa: 'Iniciativa' };
+
   function etiqueta(lista, num) { return num ? lista[num - 1].replace(/^\d\.\s*/, '') : 'No lo observa directamente'; }
+  function perfil(r) { return [r.cargo, r.sector, r.estado].filter(Boolean).join(' · '); }
+
   function armarResumen(fila) {
-    var nombre = {}; HABILIDADES.forEach(function (h) { nombre[h[0]] = h[1]; });
-    var criticas = HABILIDADES.map(function (h) {
-      var r = fila.habilidades[h[0]];
-      return { nombre: h[1], crit: (r.f || 0) * (r.c || 0), nivel: r.n };
-    }).sort(function (a, b) { return b.crit - a.crit; }).slice(0, 3);
-    var d = new Date();
+    var habs = HABILIDADES.map(function (h) {
+      var v = fila.habilidades[h[0]];
+      return { clave: h[0], nombre: h[1], def: h[2], cat: CATEGORIA[h[0]], f: v.f, c: v.c, n: v.n, crit: (v.f || 0) * (v.c || 0), top5: fila.top5.indexOf(h[0]) >= 0 };
+    });
+    // Prioridades: criticidad alta con nivel bajo (1 a 3); desempata la elección de las cinco y el nivel más bajo.
+    function orden(a, b) { return b.crit - a.crit || (b.top5 - a.top5) || ((a.n || 6) - (b.n || 6)); }
+    var bajas = habs.filter(function (h) { return h.n !== null && h.n <= 3; }).sort(orden);
+    var resto = habs.filter(function (h) { return bajas.indexOf(h) < 0; }).sort(orden);
+    var prioridades = bajas.concat(resto).slice(0, 3).map(function (h) { return h.clave; });
     return {
-      fecha: d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
+      fecha: new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
       sector: fila.sector, cargo: fila.cargo, puesto: fila.puesto, estado: fila.estado,
-      top5: fila.top5.map(function (k) { return nombre[k]; }),
-      criticas: criticas.map(function (c) { return { nombre: c.nombre, crit: c.crit, nivel: etiqueta(NIVEL, c.nivel) }; }),
-      momento: fila.momento,
-      llamada: fila.acepta_llamada
+      retail: /^Comercio al por menor/.test(fila.sector || ''),
+      momento: fila.momento, llamada: fila.acepta_llamada,
+      habs: habs, prioridades: prioridades
     };
   }
 
-  function perfil(r) { return [r.cargo, r.sector, r.estado].filter(Boolean).join(' · '); }
+  function grupoDe(r) {
+    var g = state.grupo;
+    if (!g) return null;
+    var seg = r.retail && g.respuestas.retail >= g.minimo ? 'retail' : 'todas';
+    if (g.respuestas[seg] < g.minimo) return { listo: false, faltan: g.minimo - g.respuestas.todas, minimo: g.minimo };
+    var p = {};
+    g.promedios.filter(function (x) { return x.segmento === seg; }).forEach(function (x) { p[x.habilidad] = x; });
+    return { listo: true, nombre: seg === 'retail' ? 'gerentes de retail' : 'todos los gerentes', n: g.respuestas[seg], p: p };
+  }
+  async function cargarGrupo() {
+    if (grupoPedido || !sb) return;
+    grupoPedido = true;
+    try {
+      var res = await sb.rpc('encuesta_promedios');
+      if (!res.error && res.data) { state.grupo = res.data; save(); if (state.done) render(); }
+    } catch (e) {}
+  }
+  function fmt(x) { return (Math.round(x * 10) / 10).toString(); }
+  function dif(h, g) {
+    if (!g || !g.listo || !g.p[h.clave]) return null;
+    return Math.round((h.crit - Number(g.p[h.clave].criticidad)) * 10) / 10;
+  }
+  function difTxt(d) { return d === null ? null : (d > 0 ? '+' : '') + fmt(d); }
+  function hab(r, clave) { return r.habs.filter(function (h) { return h.clave === clave; })[0]; }
+
+  function planDe(r) {
+    var p = r.prioridades.map(function (k) { return hab(r, k); });
+    var semanas = [];
+    p.forEach(function (h, i) {
+      semanas.push({ cuando: 'Semanas ' + (i * 2 + 1) + ' y ' + (i * 2 + 2), foco: h.nombre,
+        pasos: ['Episodios de audio de la ruta sobre ' + h.nombre.toLowerCase() + ': uno por semana, de menos de 15 minutos, en ' + (r.momento || 'el momento que mejor funcione').toLowerCase() + '.',
+                'Acción del jefe: ' + PLAN[h.clave][0],
+                'Qué observar: ' + PLAN[h.clave][1]] });
+    });
+    semanas.push({ cuando: 'Semana 7', foco: 'Repaso', pasos: ['Repase con el equipo las tres habilidades y pida un ejemplo de cada una que hayan aplicado.'] });
+    semanas.push({ cuando: 'Semana 8', foco: 'Revisión', pasos: ['Vuelva a calificar el nivel actual de estas tres habilidades con la misma escala de la encuesta y compárelo con su respuesta de hoy.'] });
+    return semanas;
+  }
 
   function textoResumen(r) {
-    var t = [];
-    t.push('Encuesta de habilidades blandas en el personal operativo');
-    t.push('Estudio doctoral, Universidad Corporativa del Sureste');
-    t.push('Respondida el ' + r.fecha);
+    var g = grupoDe(r), t = [];
+    t.push('Su perfil de prioridades: habilidades blandas del personal operativo');
+    t.push('Estudio doctoral, Universidad Corporativa del Sureste · ' + r.fecha);
     t.push('');
-    t.push('Perfil: ' + perfil(r));
-    t.push('Puesto de referencia: ' + r.puesto);
+    t.push('SUS TRES PRIORIDADES');
+    r.prioridades.forEach(function (k, i) {
+      var h = hab(r, k), d = difTxt(dif(h, g));
+      t.push((i + 1) + '. ' + h.nombre + ' (' + h.cat + ')');
+      t.push('   Criticidad ' + h.crit + ' de 25 · Nivel actual ' + (h.n ? h.n + ' de 5' : 'no observado') + (d ? ' · Diferencia con el grupo ' + d : ''));
+    });
     t.push('');
-    t.push('Las cinco habilidades que marcó como más críticas:');
-    r.top5.forEach(function (x) { t.push('- ' + x); });
+    t.push('PLAN DE SEGUIMIENTO DE 8 SEMANAS');
+    planDe(r).forEach(function (s) { t.push(s.cuando + ': ' + s.foco); s.pasos.forEach(function (p) { t.push('   - ' + p); }); });
     t.push('');
-    t.push('Las tres con mayor criticidad según sus respuestas (frecuencia por consecuencia, de 1 a 25):');
-    r.criticas.forEach(function (c) { t.push('- ' + c.nombre + ': ' + c.crit + '. Nivel actual: ' + c.nivel.toLowerCase()); });
-    t.push('');
-    t.push('Momento sugerido para escuchar un audio: ' + r.momento);
-    t.push('Llamada de seguimiento: ' + (r.llamada ? 'aceptada' : 'no aceptada'));
+    t.push('El plan es una propuesta derivada de sus respuestas y del marco del estudio; no es un resultado validado.');
     return t.join('\n');
   }
 
-  // PDF solo con el resumen (sin respuestas detalladas ni datos de contacto)
+  // PDF del reporte (sin las respuestas detalladas ni datos de contacto)
   function descargarPdf(r) {
+    var g = grupoDe(r);
     var doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter' });
-    var M = 56, W = doc.internal.pageSize.getWidth() - M * 2, y = M;
-    var verde = [11, 110, 95], gris = [88, 104, 100], tinta = [20, 32, 29];
-    function linea(txt, size, color, estilo, extra) {
+    var M = 54, PW = doc.internal.pageSize.getWidth(), W = PW - M * 2, PH = doc.internal.pageSize.getHeight(), y = M;
+    var verde = [11, 110, 95], gris = [88, 104, 100], tinta = [20, 32, 29], linea_ = [211, 220, 216], naranja = [168, 72, 26];
+    function salto(h) { if (y + h > PH - M) { doc.addPage(); y = M; } }
+    function txt(s, size, color, estilo, x, ancho, extra) {
       doc.setFont('helvetica', estilo || 'normal'); doc.setFontSize(size); doc.setTextColor.apply(doc, color);
-      doc.splitTextToSize(txt, W).forEach(function (l) {
-        if (y > doc.internal.pageSize.getHeight() - M) { doc.addPage(); y = M; }
-        doc.text(l, M, y); y += size * 1.35;
-      });
+      doc.splitTextToSize(s, ancho || W).forEach(function (l) { salto(size * 1.35); doc.text(l, x || M, y); y += size * 1.35; });
       y += extra || 0;
     }
-    function titulo(txt) { y += 6; linea(txt.toUpperCase(), 9, gris, 'bold', 2); }
-    linea('ESTUDIO DOCTORAL · UNIVERSIDAD CORPORATIVA DEL SURESTE', 9, verde, 'bold', 6);
-    linea('Resumen de su encuesta de habilidades blandas', 18, tinta, 'bold', 2);
-    linea('Respondida el ' + r.fecha, 11, gris, 'normal', 8);
-    doc.setDrawColor(211, 220, 216); doc.line(M, y, M + W, y); y += 18;
-    titulo('Perfil');
-    linea(perfil(r), 11, tinta); linea('Puesto de referencia: ' + r.puesto, 11, tinta, 'normal', 6);
-    titulo('Las cinco habilidades que marcó como más críticas');
-    r.top5.forEach(function (x, i) { linea((i + 1) + '. ' + x, 11, tinta); }); y += 6;
-    titulo('Mayor criticidad según sus respuestas');
-    linea('Frecuencia por consecuencia, de 1 a 25, y el nivel que observa hoy.', 9, gris, 'normal', 2);
-    r.criticas.forEach(function (c) { linea(c.nombre + ': ' + c.crit + ' · ' + c.nivel.toLowerCase(), 11, tinta); }); y += 6;
-    titulo('Para terminar');
-    linea('Momento sugerido para escuchar un audio: ' + r.momento, 11, tinta);
-    linea('Llamada de seguimiento: ' + (r.llamada ? 'aceptada' : 'no aceptada'), 11, tinta, 'normal', 14);
-    linea('Este resumen incluye solo una parte de sus respuestas. Sus respuestas completas se guardaron de forma anónima para fines académicos.', 9, gris);
-    doc.save('resumen-encuesta-habilidades.pdf');
+    function titulo(s) { salto(40); y += 10; txt(s, 13, tinta, 'bold', M, W, 4); doc.setDrawColor.apply(doc, linea_); doc.line(M, y, M + W, y); y += 14; }
+
+    txt('ESTUDIO DOCTORAL · UNIVERSIDAD CORPORATIVA DEL SURESTE', 8.5, verde, 'bold', M, W, 14);
+    txt('Su perfil de prioridades', 22, tinta, 'bold', M, W, 2);
+    txt('Habilidades blandas del personal operativo · ' + r.fecha, 10.5, gris, 'normal', M, W, 2);
+    txt(perfil(r) + ' · Puesto de referencia: ' + r.puesto, 10.5, gris, 'normal', M, W, 4);
+
+    titulo('Sus tres prioridades');
+    r.prioridades.forEach(function (k, i) {
+      var h = hab(r, k), d = difTxt(dif(h, g));
+      salto(90);
+      txt((i + 1) + '. ' + h.nombre, 14, tinta, 'bold', M, W, 0);
+      txt(h.cat.toUpperCase(), 8.5, verde, 'bold', M + 16, W - 16, 2);
+      txt(h.def, 10.5, tinta, 'normal', M + 16, W - 16, 4);
+      txt('Criticidad ' + h.crit + ' de 25     Nivel actual ' + (h.n ? h.n + ' de 5' : 'no observado') + '     Diferencia con el grupo ' + (d || 'pendiente'), 10, naranja, 'bold', M + 16, W - 16, 12);
+    });
+
+    txt('Criticidad: frecuencia por consecuencia, de 1 a 25. Diferencia con el grupo: su criticidad menos el promedio; si es positiva, usted la considera más crítica que el resto.', 8.5, gris, 'normal', M, W, 4);
+    titulo('Comparación con el promedio grupal');
+    if (g && g.listo) {
+      txt('Criticidad de cada habilidad (1 a 25): la suya contra el promedio de ' + g.nombre + ' (' + g.n + ' respuestas).', 9.5, gris, 'normal', M, W, 6);
+      var cx = M + 150, cw = W - 150 - 50;
+      r.habs.slice().sort(function (a, b) { return b.crit - a.crit; }).forEach(function (h) {
+        salto(22);
+        var gp = g.p[h.clave] ? Number(g.p[h.clave].criticidad) : null;
+        doc.setFont('helvetica', r.prioridades.indexOf(h.clave) >= 0 ? 'bold' : 'normal'); doc.setFontSize(9); doc.setTextColor.apply(doc, tinta);
+        doc.text(CORTO[h.clave] || h.nombre, M, y + 3);
+        doc.setFillColor(237, 241, 239); doc.rect(cx, y - 6, cw, 10, 'F');
+        doc.setFillColor.apply(doc, verde); doc.rect(cx, y - 6, Math.max(1, cw * h.crit / 25), 10, 'F');
+        if (gp !== null) { var gx = cx + cw * gp / 25; doc.setDrawColor(255, 255, 255); doc.setLineWidth(5); doc.line(gx, y - 10, gx, y + 8); doc.setDrawColor.apply(doc, naranja); doc.setLineWidth(2.5); doc.line(gx, y - 10, gx, y + 8); doc.setLineWidth(1); }
+        doc.setFont('helvetica', 'normal'); doc.setTextColor.apply(doc, gris);
+        doc.text(h.crit + (gp !== null ? ' / ' + fmt(gp) : ''), cx + cw + 6, y + 3);
+        y += 18;
+      });
+      txt('Barra verde: su respuesta. Línea naranja: promedio del grupo. En negritas, sus tres prioridades.', 8.5, gris, 'normal', M, W, 4);
+    } else {
+      txt('El promedio grupal aparece cuando haya al menos ' + (g ? g.minimo : 20) + ' respuestas, para proteger el anonimato de quienes participan.' + (g ? ' Faltan ' + Math.max(0, g.faltan) + '.' : ''), 10, gris, 'normal', M, W, 4);
+    }
+
+    titulo('Plan de seguimiento de 8 semanas');
+    planDe(r).forEach(function (s) {
+      salto(60);
+      txt(s.cuando + ' · ' + s.foco, 11, tinta, 'bold', M, W, 2);
+      s.pasos.forEach(function (p) { txt('- ' + p, 10, tinta, 'normal', M + 12, W - 12, 0); });
+      y += 8;
+    });
+    txt('Este plan es una propuesta derivada de sus respuestas y del marco del estudio; no es un resultado validado. Sus respuestas completas se guardaron de forma anónima para fines académicos.', 8.5, gris, 'normal', M, W, 0);
+    doc.save('perfil-prioridades-habilidades.pdf');
+  }
+
+  function grafica(box, r, g) {
+    var NS = 'http://www.w3.org/2000/svg';
+    var filas = r.habs.slice().sort(function (a, b) { return b.crit - a.crit; });
+    var W = Math.max(300, box.clientWidth || 600), rowH = 30, L = Math.min(175, W * 0.46), R = 16, T = 22;
+    var H = T + filas.length * rowH + 8;
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('width', '100%'); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Criticidad de cada habilidad: la suya contra el promedio del grupo');
+    function n(tag, at, texto) { var e = document.createElementNS(NS, tag); Object.keys(at).forEach(function (k) { e.setAttribute(k, at[k]); }); if (texto != null) e.textContent = texto; svg.appendChild(e); return e; }
+    var x = function (v) { return L + (W - L - R) * (v - 1) / 24; };
+    [1, 5, 10, 15, 20, 25].forEach(function (v) {
+      n('line', { x1: x(v), x2: x(v), y1: T - 4, y2: H - 6, stroke: 'var(--line)' });
+      n('text', { x: x(v), y: 12, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--muted)' }, String(v));
+    });
+    filas.forEach(function (h, i) {
+      var cy = T + i * rowH + rowH / 2, pri = r.prioridades.indexOf(h.clave) >= 0;
+      var nom = CORTO[h.clave] || h.nombre;
+      n('text', { x: L - 10, y: cy, dy: '0.35em', 'text-anchor': 'end', 'font-size': 13, 'font-weight': pri ? 700 : 400, fill: 'var(--ink)' }, nom);
+      var gp = g && g.listo && g.p[h.clave] ? Number(g.p[h.clave].criticidad) : null;
+      if (gp !== null) {
+        n('line', { x1: x(Math.min(gp, h.crit || 1)), x2: x(Math.max(gp, h.crit || 1)), y1: cy, y2: cy, stroke: 'var(--muted)', 'stroke-width': 2 });
+        n('circle', { cx: x(gp), cy: cy, r: 6, fill: 'var(--surface)', stroke: 'var(--alert)', 'stroke-width': 2.5 });
+      }
+      n('circle', { cx: x(h.crit || 1), cy: cy, r: 6.5, fill: 'var(--accent)' });
+    });
+    box.appendChild(svg);
   }
 
   function renderResumen() {
     var r = state.resumen;
-    var h = el('div', 'head'); h.appendChild(el('h1', null, 'Gracias por su tiempo'));
-    h.appendChild(el('p', 'lead', 'Sus respuestas quedaron registradas de forma anónima.' + (r ? ' Este es un resumen para que lo conserve.' : ' Ya puede cerrar esta página.')));
-    app.appendChild(h);
-    if (!r) return;
+    if (!r || !r.habs) {
+      var h0 = el('div', 'head'); h0.appendChild(el('h1', null, 'Gracias por su tiempo'));
+      h0.appendChild(el('p', 'lead', 'Sus respuestas quedaron registradas de forma anónima. Ya puede cerrar esta página.')); app.appendChild(h0);
+      return;
+    }
+    if (!state.grupo) cargarGrupo();
+    var g = grupoDe(r);
 
-    var box = el('section', 'sum'); box.setAttribute('aria-label', 'Resumen de sus respuestas');
-    box.appendChild(el('p', 'sum-date', 'Respondida el ' + r.fecha));
-    function sec(label, fill) { var s = el('div', 'sum-sec'); s.appendChild(el('div', 'sum-label', label)); fill(s); box.appendChild(s); }
-    sec('Perfil', function (s) {
-      s.appendChild(el('p', null, perfil(r)));
-      s.appendChild(el('p', null, 'Puesto de referencia: ' + r.puesto));
-    });
-    sec('Las cinco que marcó como más críticas', function (s) {
-      var ol = el('ul', 'sum-list'); r.top5.forEach(function (x) { ol.appendChild(el('li', null, x)); }); s.appendChild(ol);
-    });
-    sec('Mayor criticidad según sus respuestas', function (s) {
-      s.appendChild(el('p', 'q-help', 'Frecuencia por consecuencia, de 1 a 25, y el nivel que observa hoy.'));
-      r.criticas.forEach(function (c) {
-        var row = el('div', 'sum-row'); row.appendChild(el('span', null, c.nombre)); row.appendChild(el('span', null, c.crit + ' · ' + c.nivel.toLowerCase())); s.appendChild(row);
-      });
-    });
-    sec('Para terminar', function (s) {
-      s.appendChild(el('p', null, 'Momento sugerido para escuchar un audio: ' + r.momento));
-      s.appendChild(el('p', null, 'Llamada de seguimiento: ' + (r.llamada ? 'aceptada' : 'no aceptada')));
-    });
-    app.appendChild(box);
+    var head = el('div', 'head');
+    head.appendChild(el('h1', null, 'Su perfil de prioridades'));
+    head.appendChild(el('p', 'lead', 'Gracias. Sus respuestas quedaron registradas de forma anónima. Este reporte muestra las tres habilidades que, según sus respuestas, conviene atender primero en su equipo.'));
+    head.appendChild(el('p', 'sum-date', perfil(r) + ' · ' + r.fecha));
+    app.appendChild(head);
 
+    // 1. Tres prioridades
+    var s1 = el('section', 'rep'); s1.appendChild(el('h2', null, 'Sus tres prioridades'));
+    r.prioridades.forEach(function (k, i) {
+      var h = hab(r, k), d = difTxt(dif(h, g));
+      var c = el('article', 'pri');
+      var t = el('h3', 'pri-tit', (i + 1) + '. ' + h.nombre); c.appendChild(t);
+      c.appendChild(el('div', 'pri-cat', h.cat));
+      c.appendChild(el('p', 'pri-def', h.def));
+      var mets = el('div', 'mets');
+      function met(valor, etq) { var m = el('div', 'met'); m.appendChild(el('span', 'met-v', valor)); m.appendChild(el('span', 'met-l', etq)); mets.appendChild(m); }
+      met(h.crit + ' / 25', 'Criticidad');
+      met(h.n ? h.n + ' / 5' : '—', h.n ? 'Nivel actual' : 'Nivel no observado');
+      met(d || '—', d ? 'Diferencia con el grupo' : 'Grupo pendiente');
+      c.appendChild(mets);
+      s1.appendChild(c);
+    });
+    s1.appendChild(el('p', 'q-help', 'Criticidad: frecuencia por consecuencia, de 1 a 25. Diferencia con el grupo: su criticidad menos el promedio; si es positiva, usted la considera más crítica que el resto.'));
+    app.appendChild(s1);
+
+    // 2. Comparación
+    var s2 = el('section', 'rep sum'); s2.appendChild(el('h2', null, 'Comparación con el promedio grupal'));
+    if (g && g.listo) {
+      s2.appendChild(el('p', 'q-help', 'Criticidad de cada habilidad, de 1 a 25. El punto verde es su respuesta; el círculo naranja, el promedio de ' + g.nombre + ' (' + g.n + ' respuestas). En negritas, sus tres prioridades.'));
+      var box = el('div', 'chart'); s2.appendChild(box); app.appendChild(s2); grafica(box, r, g);
+    } else {
+      s2.appendChild(el('p', null, 'El promedio grupal aparece cuando haya al menos ' + (g ? g.minimo : 20) + ' respuestas, para proteger el anonimato de quienes participan.' + (g ? ' Faltan ' + Math.max(0, g.faltan) + '.' : '')));
+      s2.appendChild(el('p', 'q-help', 'Mientras tanto, esta es su criticidad por habilidad.'));
+      var box2 = el('div', 'chart'); s2.appendChild(box2); app.appendChild(s2); grafica(box2, r, null);
+      s2.appendChild(el('p', 'q-help no-print', 'Si vuelve a abrir este enlace desde este dispositivo más adelante, la comparación se actualizará sola.'));
+    }
+
+    // 3. Plan
+    var s3 = el('section', 'rep sum'); s3.appendChild(el('h2', null, 'Plan de seguimiento de 8 semanas'));
+    s3.appendChild(el('p', 'q-help', 'Una propuesta para la educación continua de su equipo, construida con sus tres prioridades.'));
+    planDe(r).forEach(function (s) {
+      var b = el('div', 'sem');
+      var hd = el('div', 'sem-h'); hd.appendChild(el('span', 'sem-c', s.cuando)); hd.appendChild(el('span', 'sem-f', s.foco)); b.appendChild(hd);
+      var ul = el('ul', 'sum-list'); s.pasos.forEach(function (p) { ul.appendChild(el('li', null, p)); }); b.appendChild(ul);
+      s3.appendChild(b);
+    });
+    s3.appendChild(el('p', 'note', 'Este plan es una propuesta derivada de sus respuestas y del marco del estudio; no es un resultado validado.'));
+    app.appendChild(s3);
+
+    // Acciones
     var ok = el('p', 'ok'); ok.setAttribute('aria-live', 'polite');
     var acts = el('div', 'acts');
-    var texto = textoResumen(r);
-    if (navigator.share) {
-      var bs = el('button', 'btn main', 'Compartir o enviarme el resumen'); bs.type = 'button';
-      bs.addEventListener('click', function () { navigator.share({ title: 'Resumen de mi encuesta', text: texto }).catch(function () {}); });
-      acts.appendChild(bs);
-    }
-    var bc = el('button', 'btn' + (navigator.share ? '' : ' main'), 'Copiar resumen'); bc.type = 'button';
-    bc.addEventListener('click', function () {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(texto).then(function () { ok.textContent = 'Resumen copiado.'; }, function () { ok.textContent = 'No se pudo copiar; use el botón de guardar en PDF.'; });
-      } else { ok.textContent = 'No se pudo copiar; use el botón de guardar en PDF.'; }
-    });
-    acts.appendChild(bc);
-    var bp = el('button', 'btn', 'Descargar resumen en PDF'); bp.type = 'button'; bp.id = 'btnPdf';
+    var bp = el('button', 'btn main', 'Descargar reporte en PDF'); bp.type = 'button'; bp.id = 'btnPdf';
     bp.addEventListener('click', function () {
       try { descargarPdf(r); ok.textContent = 'PDF descargado.'; }
       catch (e) { ok.textContent = 'No se pudo crear el PDF; se abrirá la opción de imprimir.'; window.print(); }
     });
     acts.appendChild(bp);
+    var texto = textoResumen(r);
+    if (navigator.share) {
+      var bs = el('button', 'btn', 'Compartir'); bs.type = 'button';
+      bs.addEventListener('click', function () { navigator.share({ title: 'Mi perfil de prioridades', text: texto }).catch(function () {}); });
+      acts.appendChild(bs);
+    }
+    var bc = el('button', 'btn', 'Copiar texto'); bc.type = 'button';
+    bc.addEventListener('click', function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function () { ok.textContent = 'Texto copiado.'; }, function () { ok.textContent = 'No se pudo copiar; descargue el PDF.'; });
+      } else { ok.textContent = 'No se pudo copiar; descargue el PDF.'; }
+    });
+    acts.appendChild(bc);
     app.appendChild(acts);
 
     var mailSec = el('div', 'sum-sec no-print');
     mailSec.appendChild(el('div', 'sum-label', 'Enviarlo a su correo'));
-    mailSec.appendChild(el('p', 'q-help', 'Se abre su aplicación de correo con el resumen listo; solo presione enviar. Esta dirección no se guarda.'));
+    mailSec.appendChild(el('p', 'q-help', 'Se abre su aplicación de correo con el reporte en texto; solo presione enviar. Para la versión con gráfica, adjunte el PDF. Esta dirección no se guarda.'));
     var mail = el('div', 'mail');
     var mi = document.createElement('input'); mi.type = 'email'; mi.className = 'field'; mi.id = 'correoResumen'; mi.placeholder = 'su@correo.com';
-    mi.autocomplete = 'email'; mi.setAttribute('aria-label', 'Correo para enviar el resumen'); mi.value = state.correo || '';
+    mi.autocomplete = 'email'; mi.setAttribute('aria-label', 'Correo para enviar el reporte'); mi.value = state.correo || '';
     var bm = el('button', 'btn', 'Abrir correo'); bm.type = 'button';
     bm.addEventListener('click', function () {
       var to = mi.value.trim();
       if (to && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) { ok.textContent = 'Revise la dirección de correo.'; return; }
-      location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent('Resumen de mi encuesta de habilidades blandas') + '&body=' + encodeURIComponent(texto);
-      ok.textContent = 'Si no se abrió su correo, use "Copiar resumen".';
+      location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent('Mi perfil de prioridades: habilidades blandas') + '&body=' + encodeURIComponent(texto);
+      ok.textContent = 'Si no se abrió su correo, use "Copiar texto".';
     });
     mail.appendChild(mi); mail.appendChild(bm); mailSec.appendChild(mail);
     app.appendChild(mailSec);
     app.appendChild(ok);
 
-    app.appendChild(el('p', 'note no-print', 'El resumen queda guardado solo en este navegador. Si vuelve a abrir el enlace desde este mismo dispositivo, lo encontrará aquí.'));
-    var borrar = el('button', 'linkbtn', 'Borrar el resumen de este dispositivo'); borrar.type = 'button';
-    borrar.addEventListener('click', function () { state.resumen = null; state.correo = ''; save(); render(); });
+    app.appendChild(el('p', 'note no-print', 'El reporte queda guardado solo en este navegador. Si vuelve a abrir el enlace desde este mismo dispositivo, lo encontrará aquí.'));
+    var borrar = el('button', 'linkbtn', 'Borrar el reporte de este dispositivo'); borrar.type = 'button';
+    borrar.addEventListener('click', function () { state.resumen = null; state.correo = ''; state.grupo = null; save(); render(); });
     app.appendChild(borrar);
   }
 
