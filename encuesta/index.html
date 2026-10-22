@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Encuesta de habilidades blandas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600;700&display=swap"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+/* Una columna de lectura (720px), barra fija de avance arriba y navegación al pie de cada página. */
+:root {
+  --bg: #EDF1EF; --surface: #FFFFFF; --ink: #14201D; --muted: #586864; --line: #D3DCD8;
+  --accent: #0B6E5F; --accent-ink: #FFFFFF; --accent-soft: #DBEDE8;
+  --alert: #A8481A; --alert-soft: #F7E4D6;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", "Segoe UI", sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E1514; --surface: #17201E; --ink: #E7EEEB; --muted: #9BACA7; --line: #2A3835;
+    --accent: #56C7B2; --accent-ink: #06211C; --accent-soft: #16322D;
+    --alert: #F2A772; --alert-soft: #3B2616; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.bar { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-inline: 16px; }
+.bar-in { max-width: 720px; margin-inline: auto; padding-block: 10px; display: flex; flex-direction: column; gap: 8px; }
+.bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+
+.wrap { max-width: 752px; margin-inline: auto; padding-inline: 16px; padding-block: 24px 48px; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 5vw, 34px); line-height: 1.12; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--font-display); font-weight: 500; font-size: 19px; line-height: 1.25; margin: 0; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 65ch; }
+.head { display: flex; flex-direction: column; gap: 8px; }
+.intro { display: flex; flex-direction: column; gap: 10px; max-width: 65ch; }
+.note { font-size: 14px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; max-width: 65ch; }
+.note.warn { border-left-color: var(--alert); }
+
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.q.bad { border-color: var(--alert); }
+.q-title { font-weight: 600; }
+.req { color: var(--alert); font-weight: 700; }
+.q-help { font-size: 14px; color: var(--muted); }
+.err { font-size: 14px; color: var(--alert); font-weight: 600; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opt { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; min-width: 0; }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.opt:has(input:disabled) { opacity: .45; cursor: not-allowed; }
+.opt input { margin-top: 4px; accent-color: var(--accent); flex: none; }
+.opt span { min-width: 0; overflow-wrap: anywhere; }
+.field { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+textarea.field { min-height: 96px; resize: vertical; }
+.other { margin-left: 34px; width: calc(100% - 34px); }
+.count { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.skill { display: flex; flex-direction: column; gap: 10px; }
+.skill-head { display: flex; flex-direction: column; gap: 2px; padding-top: 8px; }
+.skill-def { color: var(--muted); max-width: 65ch; }
+
+.nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 10px 18px; font-weight: 600; cursor: pointer; }
+.btn.main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .6; cursor: progress; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="bar-top">
+      <span class="brand">Estudio doctoral · UCS</span>
+      <span class="where" id="where"></span>
+    </div>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  // ── Conexión (llave pública; la base solo permite insertar) ──
+  var SUPA_URL = 'https://rhbyyhciyiacjbmkqbnw.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoYnl5aGNpeWlhY2pibWtxYm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTUwMTgsImV4cCI6MjA5MTY3MTAxOH0.jqJnsG1umJwR2VmSPfQZAd2rrKwAXu0JC2GdoZGh4bE';
+  var VERSION = 'v1';
+  var STORE = 'encuesta_habilidades_' + VERSION;
+  var sb = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+    : null;
+
+  // ── Instrumento ──
+  var HABILIDADES = [
+    ['trabajo_equipo', 'Trabajo en equipo y colaboración', 'Apoya a sus compañeros cuando lo necesitan y cumple su parte para que el equipo logre la meta.'],
+    ['solucion_problemas', 'Solución de problemas y toma de decisiones', 'Identifica la causa de un problema y decide qué hacer dentro de lo que le corresponde, sin esperar a que otro lo resuelva.'],
+    ['orientacion_cliente', 'Orientación al cliente', 'Atiende al cliente con cortesía y resuelve su necesidad o lo canaliza con quien puede resolverla.'],
+    ['creatividad', 'Creatividad', 'Propone formas nuevas o más sencillas de hacer su trabajo.'],
+    ['autorregulacion', 'Autorregulación emocional y manejo del estrés', 'Mantiene la calma y el trato respetuoso bajo presión o ante una persona molesta.'],
+    ['comunicacion', 'Comunicación clara y escucha', 'Explica lo que necesita con claridad y confirma que entendió lo que le dijeron antes de actuar.'],
+    ['liderazgo', 'Liderazgo e influencia', 'Orienta a sus compañeros, da el ejemplo y logra que otros lo sigan.'],
+    ['adaptabilidad', 'Adaptabilidad al cambio', 'Acepta cambios de tarea, horario o procedimiento y se ajusta sin bajar su desempeño.'],
+    ['aprendizaje', 'Aprendizaje continuo', 'Pregunta, pide retroalimentación y aplica en su trabajo lo que aprende.'],
+    ['profesionalismo', 'Profesionalismo, responsabilidad y ética de trabajo', 'Llega a tiempo, cumple lo que promete, respeta las reglas y reconoce sus errores.'],
+    ['negociacion', 'Negociación y manejo de conflictos', 'Resuelve desacuerdos con compañeros o clientes buscando un acuerdo, sin agredir ni evadir.'],
+    ['resiliencia', 'Resiliencia y tolerancia a la frustración', 'Se repone de un error o de un mal día y vuelve a intentarlo.'],
+    ['iniciativa', 'Iniciativa', 'Hace lo que se necesita sin que se lo pidan y propone mejoras.']
+  ];
+  var FREC = ['1. Casi nunca', '2. Alguna vez al mes', '3. Cada semana', '4. Varias veces por semana', '5. En cada jornada'];
+  var CONS = ['1. No se nota', '2. Molestia menor entre compañeros', '3. Retrabajo o quejas', '4. Se afecta el resultado del área o hay un conflicto serio', '5. Se pierde al cliente o hay que separar al trabajador'];
+  var NO_OBS = 'No lo observo directamente';
+  var NIVEL = ['1. Casi nadie la muestra', '2. Pocos la muestran', '3. La mitad la muestra', '4. La mayoría la muestra', '5. Casi todos la muestran de forma constante', NO_OBS];
+
+  // ── Estado (se conserva en el navegador si se cierra la pestaña) ──
+  var state = load() || { page: 0, a: {}, other: {}, variante: Math.random() < 0.5 ? 'A' : 'B', done: false, declined: false };
+  state.errors = {};
+  var ORDEN = HABILIDADES.map(function (_, i) { return i; });
+  if (state.variante === 'B') ORDEN.reverse();
+  var GRUPOS = [[0, 4], [4, 7], [7, 10], [10, 13]];
+
+  function load() { try { var s = localStorage.getItem(STORE); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function save() { try { var c = Object.assign({}, state); delete c.errors; localStorage.setItem(STORE, JSON.stringify(c)); } catch (e) {} }
+
+  function skillQs(i) {
+    var n = HABILIDADES[i][1], k = HABILIDADES[i][0];
+    return [
+      { id: k + '_f', type: 'radio', title: n + ': ¿con qué frecuencia la exige el puesto?', options: FREC, required: true },
+      { id: k + '_c', type: 'radio', title: n + ': si el trabajador no la tiene, ¿qué pasa?', options: CONS, required: true },
+      { id: k + '_n', type: 'radio', title: n + ': ¿cómo la observa hoy en el personal de ese puesto?', options: NIVEL, required: true }
+    ];
+  }
+
+  var PAGES = [
+    { title: 'Habilidades blandas en el personal operativo', intro: [
+        'Esta encuesta forma parte de una investigación del Doctorado en Educación y Liderazgo de Instituciones de la Universidad Corporativa del Sureste. Busca identificar qué habilidades blandas necesitan más las empresas en su personal operativo.',
+        'Contestarla toma alrededor de 10 minutos. Su participación es voluntaria y puede abandonarla en cualquier momento. No se piden nombres de personas ni de la empresa, y la información se usará solo con fines académicos y se reportará de forma agregada.',
+        'Sus respuestas son anónimas. Si al final decide dejar un teléfono o un correo, esos datos se guardan por separado y no se ligan a sus respuestas.',
+        'Responsable: Javier Alejandro Pérez Ramón.'],
+      qs: [{ id: 'consent', type: 'radio', title: '¿Acepta participar en esta encuesta?', help: 'Al aceptar confirma que leyó la presentación y que participa de forma voluntaria.', options: ['Sí, acepto participar', 'No acepto'], required: true }] },
+    { title: 'Sobre usted y su empresa', lead: 'Seis preguntas para clasificar las respuestas. Ninguna lo identifica.',
+      qs: [
+        { id: 'sector', type: 'select', title: '¿A qué sector pertenece su empresa?', options: ['Comercio al por menor (retail)', 'Comercio al por mayor', 'Manufactura', 'Construcción', 'Restaurantes, hoteles y turismo', 'Transporte y logística', 'Salud', 'Educación', 'Servicios financieros', 'Tecnología', 'Gobierno', 'Otro'], required: true },
+        { id: 'tamano', type: 'radio', title: '¿Cuántas personas trabajan en su empresa?', options: ['1 a 10', '11 a 50', '51 a 250', 'Más de 250'], required: true },
+        { id: 'cargo', type: 'radio', title: '¿Cuál es su cargo?', options: ['Alta dirección (dueño, director general o equivalente)', 'Gerencia', 'Jefatura o supervisión', 'Recursos humanos o capacitación'], other: true, required: true },
+        { id: 'personas_cargo', type: 'radio', title: '¿Cuántas personas tiene a su cargo?', options: ['Ninguna', '1 a 5', '6 a 20', '21 a 50', 'Más de 50'], required: true },
+        { id: 'antiguedad', type: 'radio', title: '¿Cuánto tiempo lleva en su cargo actual?', options: ['Menos de 1 año', '1 a 3 años', '4 a 10 años', 'Más de 10 años'], required: true },
+        { id: 'ciudad', type: 'text', title: '¿En qué ciudad y estado trabaja?', required: true, max: 120 }
+      ] },
+    { title: 'Puesto de referencia', lead: 'Piense en el puesto operativo que mejor conoce dentro de su empresa. Todas las preguntas siguientes se refieren al personal que ocupa ese puesto.',
+      qs: [{ id: 'puesto', type: 'radio', title: '¿Sobre qué puesto operativo va a contestar?', options: ['Atención al cliente o cajas', 'Ventas o piso de venta', 'Almacén, reparto o logística', 'Producción u operación', 'Administrativo o de oficina'], other: true, required: true }] }
+  ];
+  GRUPOS.forEach(function (g, k) {
+    PAGES.push({ title: 'Habilidades (' + (k + 1) + ' de 4)',
+      lead: 'Para cada habilidad hay tres preguntas: con qué frecuencia la exige el puesto, qué pasa si falta y cómo la observa hoy en su personal. Lea la descripción de cada habilidad antes de contestar.',
+      skills: ORDEN.slice(g[0], g[1]) });
+  });
+  PAGES.push({ title: 'Las cinco más críticas', lead: 'Si solo pudiera asegurar cinco habilidades en el personal de ese puesto, ¿cuáles serían?',
+    qs: [{ id: 'top5', type: 'check', title: 'Marque exactamente cinco habilidades', options: ORDEN.map(function (i) { return HABILIDADES[i][1]; }), exact: 5, required: true }] });
+  PAGES.push({ title: 'Para terminar', lead: 'Últimas preguntas.',
+    qs: [
+      { id: 'caso', type: 'textarea', title: 'Opcional: cuente un caso reciente en que la falta de una de estas habilidades le costó algo a la empresa.', help: 'No mencione nombres de personas.', max: 3000 },
+      { id: 'momento', type: 'radio', title: '¿En qué momento podría un trabajador de ese puesto escuchar un audio de hasta 15 minutos?', options: ['Al inicio de la jornada', 'Durante un descanso', 'Al cierre de la jornada', 'En el traslado al trabajo', 'Fuera del horario laboral', 'No veo un momento viable'], other: true, required: true },
+      { id: 'via', type: 'radio', title: '¿Cómo le llegó esta encuesta?', options: ['Me la envió directamente el investigador', 'Me la reenvió un colega', 'Por un grupo de mensajería o red social'], other: true, required: true },
+      { id: 'llamada', type: 'radio', title: '¿Aceptaría una llamada de 20 minutos para profundizar en sus respuestas?', help: 'Si acepta, se le pedirá un teléfono. Ese dato se guarda aparte de sus respuestas.', options: ['Sí', 'No'], required: true, rerender: true },
+      { id: 'telefono', type: 'tel', title: 'Teléfono para la llamada', help: 'Escriba al menos 10 dígitos.', required: true, when: function () { return state.a.llamada === 'Sí'; } },
+      { id: 'correo', type: 'email', title: 'Opcional: correo electrónico', help: 'Déjelo solo si quiere recibir el resumen de resultados. Se guarda aparte de sus respuestas.' }
+    ] });
+  var LAST = PAGES.length - 1;
+
+  var app = document.getElementById('app');
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function pageQs(p) {
+    if (p.skills) { var out = []; p.skills.forEach(function (i) { out = out.concat(skillQs(i)); }); return out; }
+    return (p.qs || []).filter(function (q) { return !q.when || q.when(); });
+  }
+  function valor(id) { var v = state.a[id]; return v === '__otro' ? (state.other[id] || '').trim() : v; }
+  function answered(q) {
+    var v = state.a[q.id];
+    if (q.type === 'check') return (v || []).length === q.exact;
+    if (v === '__otro') return !!(state.other[q.id] || '').trim();
+    return v != null && String(v).trim() !== '';
+  }
+  function validate(p) {
+    var bad = {};
+    pageQs(p).forEach(function (q) {
+      if (q.required && !answered(q)) bad[q.id] = q.type === 'check' ? 'Marque exactamente cinco opciones.' : 'Esta pregunta es obligatoria.';
+      var v = state.a[q.id];
+      if (q.type === 'email' && v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) bad[q.id] = 'Escriba un correo válido.';
+      if (q.type === 'tel' && v && !/^[+() -]*([0-9][+() -]*){10,15}$/.test(v)) bad[q.id] = 'Escriba un teléfono de 10 a 15 dígitos.';
+    });
+    return bad;
+  }
+
+  function renderQ(q) {
+    var box = el('section', 'q' + (state.errors[q.id] ? ' bad' : ''));
+    box.id = 'q_' + q.id;
+    var t = el('div', 'q-title', q.title);
+    if (q.required) { t.appendChild(document.createTextNode(' ')); t.appendChild(el('span', 'req', '*')); }
+    box.appendChild(t);
+    if (q.help) box.appendChild(el('div', 'q-help', q.help));
+
+    if (q.type === 'radio' || q.type === 'check') {
+      var opts = el('div', 'opts'), list = q.options.slice(), inputs = [], counter = null;
+      if (q.other) list.push('__otro');
+      function syncCheck() {
+        var n = (state.a[q.id] || []).length, full = n >= q.exact;
+        inputs.forEach(function (x) { x.disabled = full && !x.checked; });
+        if (counter) counter.textContent = n + ' de ' + q.exact + ' marcadas' + (full ? '. Para cambiar una, desmarque otra primero.' : '');
+      }
+      list.forEach(function (o, k) {
+        var lab = el('label', 'opt'), inp = document.createElement('input');
+        inp.type = q.type === 'check' ? 'checkbox' : 'radio'; inp.name = q.id; inp.id = q.id + '_' + k; inp.value = o;
+        inp.checked = q.type === 'check' ? (state.a[q.id] || []).indexOf(o) >= 0 : state.a[q.id] === o;
+        inputs.push(inp);
+        inp.addEventListener('change', function () {
+          if (q.type === 'check') {
+            var cur = (state.a[q.id] || []).slice(), at = cur.indexOf(o);
+            if (inp.checked && at < 0) { if (cur.length >= q.exact) { inp.checked = false; return; } cur.push(o); }
+            if (!inp.checked && at >= 0) cur.splice(at, 1);
+            state.a[q.id] = cur; syncCheck();
+          } else {
+            state.a[q.id] = o;
+            if (q.rerender) {
+              if (q.id === 'llamada' && o !== 'Sí') delete state.a.telefono;
+              state.errors = {}; render();
+              var same = document.getElementById(inp.id); if (same) same.focus();
+            }
+          }
+          save();
+        });
+        lab.appendChild(inp); lab.appendChild(el('span', null, o === '__otro' ? 'Otro:' : o)); opts.appendChild(lab);
+      });
+      box.appendChild(opts);
+      if (q.other) {
+        var ot = document.createElement('input'); ot.type = 'text'; ot.className = 'field other'; ot.id = q.id + '_otro'; ot.maxLength = 100;
+        ot.setAttribute('aria-label', 'Otro, especifique'); ot.placeholder = 'Especifique'; ot.value = state.other[q.id] || '';
+        ot.addEventListener('input', function () {
+          state.other[q.id] = ot.value;
+          if (ot.value) { state.a[q.id] = '__otro'; var r = document.getElementById(q.id + '_' + (list.length - 1)); if (r) r.checked = true; }
+          save();
+        });
+        box.appendChild(ot);
+      }
+      if (q.type === 'check') { counter = el('div', 'count', ''); counter.setAttribute('aria-live', 'polite'); box.appendChild(counter); syncCheck(); }
+    } else if (q.type === 'select') {
+      var s = document.createElement('select'); s.className = 'field'; s.id = q.id; s.setAttribute('aria-label', q.title);
+      var first = el('option', null, 'Elegir'); first.value = ''; s.appendChild(first);
+      q.options.forEach(function (o) { var op = el('option', null, o); op.value = o; s.appendChild(op); });
+      s.value = state.a[q.id] || ''; s.addEventListener('change', function () { state.a[q.id] = s.value; save(); });
+      box.appendChild(s);
+    } else {
+      var f = document.createElement(q.type === 'textarea' ? 'textarea' : 'input');
+      if (q.type !== 'textarea') f.type = (q.type === 'email' || q.type === 'tel') ? q.type : 'text';
+      if (q.type === 'tel') { f.setAttribute('inputmode', 'tel'); f.autocomplete = 'tel'; }
+      if (q.type === 'email') f.autocomplete = 'email';
+      f.className = 'field'; f.id = q.id; f.setAttribute('aria-label', q.title); f.placeholder = 'Su respuesta'; f.value = state.a[q.id] || '';
+      f.maxLength = q.max || 200;
+      f.addEventListener('input', function () { state.a[q.id] = f.value; save(); });
+      box.appendChild(f);
+    }
+    if (state.errors[q.id]) box.appendChild(el('div', 'err', state.errors[q.id]));
+    return box;
+  }
+
+  function renderBar() {
+    var final = state.done || state.declined;
+    document.getElementById('where').textContent = final ? '' : 'Página ' + (state.page + 1) + ' de ' + PAGES.length;
+    document.getElementById('fill').style.width = (final ? 100 : (state.page + 1) / PAGES.length * 100) + '%';
+  }
+
+  function render() {
+    app.textContent = ''; renderBar();
+    if (state.done) {
+      var h = el('div', 'head'); h.appendChild(el('h1', null, 'Gracias por su tiempo'));
+      h.appendChild(el('p', 'lead', 'Sus respuestas quedaron registradas de forma anónima. Ya puede cerrar esta página.')); app.appendChild(h);
+      return;
+    }
+    if (state.declined) {
+      var h0 = el('div', 'head'); h0.appendChild(el('h1', null, 'Encuesta terminada'));
+      h0.appendChild(el('p', 'lead', 'Eligió no participar, así que no se registró ninguna respuesta. Gracias por su tiempo.')); app.appendChild(h0);
+      var n0 = el('div', 'nav'), b0 = el('button', 'btn', 'Volver al inicio'); b0.type = 'button';
+      b0.addEventListener('click', function () { state.declined = false; delete state.a.consent; go(0); }); n0.appendChild(b0); app.appendChild(n0);
+      return;
+    }
+    if (!sb) app.appendChild(el('p', 'note warn', 'No se pudo cargar la conexión. Revise su internet y recargue la página antes de contestar.'));
+    var p = PAGES[state.page];
+    var head = el('div', 'head'); head.appendChild(el(state.page === 0 ? 'h1' : 'h2', null, p.title));
+    if (p.lead) head.appendChild(el('p', 'lead', p.lead)); app.appendChild(head);
+    if (p.intro) { var it = el('div', 'intro'); p.intro.forEach(function (t) { it.appendChild(el('p', null, t)); }); app.appendChild(it); }
+    if (p.skills) {
+      p.skills.forEach(function (i) {
+        var sk = el('div', 'skill'), sh = el('div', 'skill-head');
+        sh.appendChild(el('h3', null, HABILIDADES[i][1])); sh.appendChild(el('p', 'skill-def', HABILIDADES[i][2])); sk.appendChild(sh);
+        skillQs(i).forEach(function (q) { sk.appendChild(renderQ(q)); }); app.appendChild(sk);
+      });
+    } else { pageQs(p).forEach(function (q) { app.appendChild(renderQ(q)); }); }
+
+    if (state.page === LAST) {
+      var hp = el('div', 'hp'); hp.setAttribute('aria-hidden', 'true');
+      var hpi = document.createElement('input'); hpi.type = 'text'; hpi.id = 'sitio_web'; hpi.tabIndex = -1; hpi.autocomplete = 'off';
+      hp.appendChild(hpi); app.appendChild(hp);
+    }
+    var envioErr = el('p', 'note warn'); envioErr.id = 'envioErr'; envioErr.hidden = true; app.appendChild(envioErr);
+
+    var nav = el('div', 'nav');
+    var back = el('button', 'btn', 'Atrás'); back.type = 'button'; back.hidden = state.page === 0;
+    back.addEventListener('click', function () { go(state.page - 1); }); nav.appendChild(back);
+    var next = el('button', 'btn main', state.page === LAST ? 'Enviar respuestas' : 'Siguiente'); next.type = 'button'; next.id = 'btn_siguiente';
+    next.addEventListener('click', function () {
+      state.errors = validate(p);
+      var ids = Object.keys(state.errors);
+      if (ids.length) { render(); var first = document.getElementById('q_' + ids[0]); if (first) first.scrollIntoView({ block: 'center' }); return; }
+      if (state.page === 0 && state.a.consent === 'No acepto') { state.declined = true; save(); render(); window.scrollTo(0, 0); return; }
+      if (state.page === LAST) { enviar(next); return; }
+      go(state.page + 1);
+    });
+    nav.appendChild(next); app.appendChild(nav);
+  }
+  function go(i) { state.page = Math.max(0, Math.min(LAST, i)); state.errors = {}; save(); render(); window.scrollTo(0, 0); }
+
+  function n(v) { var x = parseInt(v, 10); return isNaN(x) ? null : x; }
+  async function enviar(btn) {
+    var hp = document.getElementById('sitio_web');
+    if (hp && hp.value) { state.done = true; save(); render(); return; }
+    var errBox = document.getElementById('envioErr');
+    if (!sb) { errBox.textContent = 'No hay conexión con el servidor. Revise su internet, recargue la página y vuelva a enviar; sus respuestas siguen guardadas en este navegador.'; errBox.hidden = false; return; }
+    btn.disabled = true; btn.textContent = 'Enviando...'; errBox.hidden = true;
+
+    var hab = {};
+    HABILIDADES.forEach(function (h) {
+      var k = h[0];
+      hab[k] = { f: n(state.a[k + '_f']), c: n(state.a[k + '_c']), n: state.a[k + '_n'] === NO_OBS ? null : n(state.a[k + '_n']) };
+    });
+    var nombreAClave = {}; HABILIDADES.forEach(function (h) { nombreAClave[h[1]] = h[0]; });
+    var fila = {
+      version: VERSION, variante: state.variante,
+      sector: valor('sector'), tamano: valor('tamano'), cargo: valor('cargo'),
+      personas_cargo: valor('personas_cargo'), antiguedad: valor('antiguedad'), ciudad: (valor('ciudad') || '').trim(),
+      puesto: valor('puesto'), habilidades: hab,
+      top5: (state.a.top5 || []).map(function (x) { return nombreAClave[x]; }),
+      caso: (state.a.caso || '').trim() || null,
+      momento: valor('momento'), via: valor('via'), acepta_llamada: state.a.llamada === 'Sí'
+    };
+    var r1 = await sb.from('encuesta_respuestas').insert(fila);
+    if (r1.error) {
+      btn.disabled = false; btn.textContent = 'Enviar respuestas';
+      errBox.textContent = 'No se pudieron enviar sus respuestas. Revise su conexión y vuelva a presionar "Enviar respuestas"; no se perdió nada de lo que contestó.';
+      errBox.hidden = false; return;
+    }
+    var tel = (state.a.telefono || '').trim(), mail = (state.a.correo || '').trim();
+    if (tel || mail) {
+      // Si falla el contacto, las respuestas ya quedaron guardadas; no se repite el envío.
+      await sb.from('encuesta_contactos').insert({
+        telefono: tel || null, correo: mail || null,
+        quiere_llamada: state.a.llamada === 'Sí' && !!tel, quiere_resultados: !!mail
+      });
+    }
+    state = { done: true, page: LAST, a: {}, other: {}, variante: state.variante, errors: {} };
+    save(); render(); window.scrollTo(0, 0);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
