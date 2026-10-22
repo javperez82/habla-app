@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600;700&display=swap"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
 /* Una columna de lectura (720px), barra fija de avance arriba y navegación al pie de cada página. */
 :root {
@@ -145,6 +146,11 @@ textarea.field { min-height: 96px; resize: vertical; }
   var FREC = ['1. Casi nunca', '2. Alguna vez al mes', '3. Cada semana', '4. Varias veces por semana', '5. En cada jornada'];
   var CONS = ['1. No se nota', '2. Molestia menor entre compañeros', '3. Retrabajo o quejas', '4. Se afecta el resultado del área o hay un conflicto serio', '5. Se pierde al cliente o hay que separar al trabajador'];
   var NO_OBS = 'No lo observo directamente';
+  var ESTADOS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua',
+    'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo',
+    'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo',
+    'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas',
+    'Fuera de México'];
   var NIVEL = ['1. Casi nadie la muestra', '2. Pocos la muestran', '3. La mitad la muestra', '4. La mayoría la muestra', '5. Casi todos la muestran de forma constante', NO_OBS];
 
   // ── Estado (se conserva en el navegador si se cierra la pestaña) ──
@@ -173,14 +179,15 @@ textarea.field { min-height: 96px; resize: vertical; }
         'Sus respuestas son anónimas. Si al final decide dejar un teléfono o un correo, esos datos se guardan por separado y no se ligan a sus respuestas.',
         'Responsable: Javier Alejandro Pérez Ramón.'],
       qs: [{ id: 'consent', type: 'radio', title: '¿Acepta participar en esta encuesta?', help: 'Al aceptar confirma que leyó la presentación y que participa de forma voluntaria.', options: ['Sí, acepto participar', 'No acepto'], required: true }] },
-    { title: 'Sobre usted y su empresa', lead: 'Seis preguntas para clasificar las respuestas. Ninguna lo identifica.',
+    { title: 'Sobre usted y su empresa', lead: 'Siete preguntas para clasificar las respuestas. Ninguna lo identifica.',
       qs: [
         { id: 'sector', type: 'select', title: '¿A qué sector pertenece su empresa?', options: ['Comercio al por menor (retail)', 'Comercio al por mayor', 'Manufactura', 'Construcción', 'Restaurantes, hoteles y turismo', 'Transporte y logística', 'Salud', 'Educación', 'Servicios financieros', 'Tecnología', 'Gobierno', 'Otro'], required: true },
         { id: 'tamano', type: 'radio', title: '¿Cuántas personas trabajan en su empresa?', options: ['1 a 10', '11 a 50', '51 a 250', 'Más de 250'], required: true },
         { id: 'cargo', type: 'radio', title: '¿Cuál es su cargo?', options: ['Alta dirección (dueño, director general o equivalente)', 'Gerencia', 'Jefatura o supervisión', 'Recursos humanos o capacitación'], other: true, required: true },
         { id: 'personas_cargo', type: 'radio', title: '¿Cuántas personas tiene a su cargo?', options: ['Ninguna', '1 a 5', '6 a 20', '21 a 50', 'Más de 50'], required: true },
         { id: 'antiguedad', type: 'radio', title: '¿Cuánto tiempo lleva en su cargo actual?', options: ['Menos de 1 año', '1 a 3 años', '4 a 10 años', 'Más de 10 años'], required: true },
-        { id: 'ciudad', type: 'text', title: '¿En qué ciudad y estado trabaja?', required: true, max: 120 }
+        { id: 'estado', type: 'select', title: '¿En qué estado trabaja?', options: ESTADOS, required: true },
+        { id: 'ciudad', type: 'text', title: '¿En qué ciudad o municipio?', required: true, max: 120 }
       ] },
     { title: 'Puesto de referencia', lead: 'Piense en el puesto operativo que mejor conoce dentro de su empresa. Todas las preguntas siguientes se refieren al personal que ocupa ese puesto.',
       qs: [{ id: 'puesto', type: 'radio', title: '¿Sobre qué puesto operativo va a contestar?', options: ['Atención al cliente o cajas', 'Ventas o piso de venta', 'Almacén, reparto o logística', 'Producción u operación', 'Administrativo o de oficina'], other: true, required: true }] }
@@ -367,7 +374,8 @@ textarea.field { min-height: 96px; resize: vertical; }
     var fila = {
       version: VERSION, variante: state.variante,
       sector: valor('sector'), tamano: valor('tamano'), cargo: valor('cargo'),
-      personas_cargo: valor('personas_cargo'), antiguedad: valor('antiguedad'), ciudad: (valor('ciudad') || '').trim(),
+      personas_cargo: valor('personas_cargo'), antiguedad: valor('antiguedad'),
+      estado: valor('estado'), ciudad: (valor('ciudad') || '').trim(),
       puesto: valor('puesto'), habilidades: hab,
       top5: (state.a.top5 || []).map(function (x) { return nombreAClave[x]; }),
       caso: (state.a.caso || '').trim() || null,
@@ -403,7 +411,7 @@ textarea.field { min-height: 96px; resize: vertical; }
     var d = new Date();
     return {
       fecha: d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
-      sector: fila.sector, cargo: fila.cargo, puesto: fila.puesto,
+      sector: fila.sector, cargo: fila.cargo, puesto: fila.puesto, estado: fila.estado,
       top5: fila.top5.map(function (k) { return nombre[k]; }),
       criticas: criticas.map(function (c) { return { nombre: c.nombre, crit: c.crit, nivel: etiqueta(NIVEL, c.nivel) }; }),
       momento: fila.momento,
@@ -411,13 +419,15 @@ textarea.field { min-height: 96px; resize: vertical; }
     };
   }
 
+  function perfil(r) { return [r.cargo, r.sector, r.estado].filter(Boolean).join(' · '); }
+
   function textoResumen(r) {
     var t = [];
     t.push('Encuesta de habilidades blandas en el personal operativo');
     t.push('Estudio doctoral, Universidad Corporativa del Sureste');
     t.push('Respondida el ' + r.fecha);
     t.push('');
-    t.push('Perfil: ' + r.cargo + ' · ' + r.sector);
+    t.push('Perfil: ' + perfil(r));
     t.push('Puesto de referencia: ' + r.puesto);
     t.push('');
     t.push('Las cinco habilidades que marcó como más críticas:');
@@ -431,6 +441,38 @@ textarea.field { min-height: 96px; resize: vertical; }
     return t.join('\n');
   }
 
+  // PDF solo con el resumen (sin respuestas detalladas ni datos de contacto)
+  function descargarPdf(r) {
+    var doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter' });
+    var M = 56, W = doc.internal.pageSize.getWidth() - M * 2, y = M;
+    var verde = [11, 110, 95], gris = [88, 104, 100], tinta = [20, 32, 29];
+    function linea(txt, size, color, estilo, extra) {
+      doc.setFont('helvetica', estilo || 'normal'); doc.setFontSize(size); doc.setTextColor.apply(doc, color);
+      doc.splitTextToSize(txt, W).forEach(function (l) {
+        if (y > doc.internal.pageSize.getHeight() - M) { doc.addPage(); y = M; }
+        doc.text(l, M, y); y += size * 1.35;
+      });
+      y += extra || 0;
+    }
+    function titulo(txt) { y += 6; linea(txt.toUpperCase(), 9, gris, 'bold', 2); }
+    linea('ESTUDIO DOCTORAL · UNIVERSIDAD CORPORATIVA DEL SURESTE', 9, verde, 'bold', 6);
+    linea('Resumen de su encuesta de habilidades blandas', 18, tinta, 'bold', 2);
+    linea('Respondida el ' + r.fecha, 11, gris, 'normal', 8);
+    doc.setDrawColor(211, 220, 216); doc.line(M, y, M + W, y); y += 18;
+    titulo('Perfil');
+    linea(perfil(r), 11, tinta); linea('Puesto de referencia: ' + r.puesto, 11, tinta, 'normal', 6);
+    titulo('Las cinco habilidades que marcó como más críticas');
+    r.top5.forEach(function (x, i) { linea((i + 1) + '. ' + x, 11, tinta); }); y += 6;
+    titulo('Mayor criticidad según sus respuestas');
+    linea('Frecuencia por consecuencia, de 1 a 25, y el nivel que observa hoy.', 9, gris, 'normal', 2);
+    r.criticas.forEach(function (c) { linea(c.nombre + ': ' + c.crit + ' · ' + c.nivel.toLowerCase(), 11, tinta); }); y += 6;
+    titulo('Para terminar');
+    linea('Momento sugerido para escuchar un audio: ' + r.momento, 11, tinta);
+    linea('Llamada de seguimiento: ' + (r.llamada ? 'aceptada' : 'no aceptada'), 11, tinta, 'normal', 14);
+    linea('Este resumen incluye solo una parte de sus respuestas. Sus respuestas completas se guardaron de forma anónima para fines académicos.', 9, gris);
+    doc.save('resumen-encuesta-habilidades.pdf');
+  }
+
   function renderResumen() {
     var r = state.resumen;
     var h = el('div', 'head'); h.appendChild(el('h1', null, 'Gracias por su tiempo'));
@@ -442,7 +484,7 @@ textarea.field { min-height: 96px; resize: vertical; }
     box.appendChild(el('p', 'sum-date', 'Respondida el ' + r.fecha));
     function sec(label, fill) { var s = el('div', 'sum-sec'); s.appendChild(el('div', 'sum-label', label)); fill(s); box.appendChild(s); }
     sec('Perfil', function (s) {
-      s.appendChild(el('p', null, r.cargo + ' · ' + r.sector));
+      s.appendChild(el('p', null, perfil(r)));
       s.appendChild(el('p', null, 'Puesto de referencia: ' + r.puesto));
     });
     sec('Las cinco que marcó como más críticas', function (s) {
@@ -475,8 +517,11 @@ textarea.field { min-height: 96px; resize: vertical; }
       } else { ok.textContent = 'No se pudo copiar; use el botón de guardar en PDF.'; }
     });
     acts.appendChild(bc);
-    var bp = el('button', 'btn', 'Imprimir o guardar en PDF'); bp.type = 'button';
-    bp.addEventListener('click', function () { window.print(); });
+    var bp = el('button', 'btn', 'Descargar resumen en PDF'); bp.type = 'button'; bp.id = 'btnPdf';
+    bp.addEventListener('click', function () {
+      try { descargarPdf(r); ok.textContent = 'PDF descargado.'; }
+      catch (e) { ok.textContent = 'No se pudo crear el PDF; se abrirá la opción de imprimir.'; window.print(); }
+    });
     acts.appendChild(bp);
     app.appendChild(acts);
 
