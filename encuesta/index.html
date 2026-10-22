@@ -79,6 +79,26 @@ textarea.field { min-height: 96px; resize: vertical; }
 .btn.main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn:disabled { opacity: .6; cursor: progress; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* ── Resumen final ── */
+.sum { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.sum-sec { display: flex; flex-direction: column; gap: 6px; }
+.sum-label { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.sum-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.sum-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
+.sum-row span:last-child { color: var(--muted); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+.sum-date { font-size: 14px; color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.acts .btn { flex: 1 1 160px; }
+.mail { display: flex; gap: 8px; flex-wrap: wrap; }
+.mail .field { flex: 1 1 200px; }
+.ok { font-size: 14px; color: var(--accent); font-weight: 600; min-height: 1.4em; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 14px; align-self: flex-start; }
+@media print {
+  .bar, .acts, .mail, .linkbtn, .ok, .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+  .sum { border-color: #999; }
+}
 </style>
 </head>
 <body>
@@ -286,11 +306,7 @@ textarea.field { min-height: 96px; resize: vertical; }
 
   function render() {
     app.textContent = ''; renderBar();
-    if (state.done) {
-      var h = el('div', 'head'); h.appendChild(el('h1', null, 'Gracias por su tiempo'));
-      h.appendChild(el('p', 'lead', 'Sus respuestas quedaron registradas de forma anónima. Ya puede cerrar esta página.')); app.appendChild(h);
-      return;
-    }
+    if (state.done) { renderResumen(); return; }
     if (state.declined) {
       var h0 = el('div', 'head'); h0.appendChild(el('h1', null, 'Encuesta terminada'));
       h0.appendChild(el('p', 'lead', 'Eligió no participar, así que no se registró ninguna respuesta. Gracias por su tiempo.')); app.appendChild(h0);
@@ -371,8 +387,120 @@ textarea.field { min-height: 96px; resize: vertical; }
         quiere_llamada: state.a.llamada === 'Sí' && !!tel, quiere_resultados: !!mail
       });
     }
-    state = { done: true, page: LAST, a: {}, other: {}, variante: state.variante, errors: {} };
+    var resumen = armarResumen(fila);
+    state = { done: true, page: LAST, a: {}, other: {}, variante: state.variante, errors: {}, resumen: resumen, correo: mail };
     save(); render(); window.scrollTo(0, 0);
+  }
+
+  // ── Resumen para quien respondió (solo se guarda en su navegador) ──
+  function etiqueta(lista, num) { return num ? lista[num - 1].replace(/^\d\.\s*/, '') : 'No lo observa directamente'; }
+  function armarResumen(fila) {
+    var nombre = {}; HABILIDADES.forEach(function (h) { nombre[h[0]] = h[1]; });
+    var criticas = HABILIDADES.map(function (h) {
+      var r = fila.habilidades[h[0]];
+      return { nombre: h[1], crit: (r.f || 0) * (r.c || 0), nivel: r.n };
+    }).sort(function (a, b) { return b.crit - a.crit; }).slice(0, 3);
+    var d = new Date();
+    return {
+      fecha: d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
+      sector: fila.sector, cargo: fila.cargo, puesto: fila.puesto,
+      top5: fila.top5.map(function (k) { return nombre[k]; }),
+      criticas: criticas.map(function (c) { return { nombre: c.nombre, crit: c.crit, nivel: etiqueta(NIVEL, c.nivel) }; }),
+      momento: fila.momento,
+      llamada: fila.acepta_llamada
+    };
+  }
+
+  function textoResumen(r) {
+    var t = [];
+    t.push('Encuesta de habilidades blandas en el personal operativo');
+    t.push('Estudio doctoral, Universidad Corporativa del Sureste');
+    t.push('Respondida el ' + r.fecha);
+    t.push('');
+    t.push('Perfil: ' + r.cargo + ' · ' + r.sector);
+    t.push('Puesto de referencia: ' + r.puesto);
+    t.push('');
+    t.push('Las cinco habilidades que marcó como más críticas:');
+    r.top5.forEach(function (x) { t.push('- ' + x); });
+    t.push('');
+    t.push('Las tres con mayor criticidad según sus respuestas (frecuencia por consecuencia, de 1 a 25):');
+    r.criticas.forEach(function (c) { t.push('- ' + c.nombre + ': ' + c.crit + '. Nivel actual: ' + c.nivel.toLowerCase()); });
+    t.push('');
+    t.push('Momento sugerido para escuchar un audio: ' + r.momento);
+    t.push('Llamada de seguimiento: ' + (r.llamada ? 'aceptada' : 'no aceptada'));
+    return t.join('\n');
+  }
+
+  function renderResumen() {
+    var r = state.resumen;
+    var h = el('div', 'head'); h.appendChild(el('h1', null, 'Gracias por su tiempo'));
+    h.appendChild(el('p', 'lead', 'Sus respuestas quedaron registradas de forma anónima.' + (r ? ' Este es un resumen para que lo conserve.' : ' Ya puede cerrar esta página.')));
+    app.appendChild(h);
+    if (!r) return;
+
+    var box = el('section', 'sum'); box.setAttribute('aria-label', 'Resumen de sus respuestas');
+    box.appendChild(el('p', 'sum-date', 'Respondida el ' + r.fecha));
+    function sec(label, fill) { var s = el('div', 'sum-sec'); s.appendChild(el('div', 'sum-label', label)); fill(s); box.appendChild(s); }
+    sec('Perfil', function (s) {
+      s.appendChild(el('p', null, r.cargo + ' · ' + r.sector));
+      s.appendChild(el('p', null, 'Puesto de referencia: ' + r.puesto));
+    });
+    sec('Las cinco que marcó como más críticas', function (s) {
+      var ol = el('ul', 'sum-list'); r.top5.forEach(function (x) { ol.appendChild(el('li', null, x)); }); s.appendChild(ol);
+    });
+    sec('Mayor criticidad según sus respuestas', function (s) {
+      s.appendChild(el('p', 'q-help', 'Frecuencia por consecuencia, de 1 a 25, y el nivel que observa hoy.'));
+      r.criticas.forEach(function (c) {
+        var row = el('div', 'sum-row'); row.appendChild(el('span', null, c.nombre)); row.appendChild(el('span', null, c.crit + ' · ' + c.nivel.toLowerCase())); s.appendChild(row);
+      });
+    });
+    sec('Para terminar', function (s) {
+      s.appendChild(el('p', null, 'Momento sugerido para escuchar un audio: ' + r.momento));
+      s.appendChild(el('p', null, 'Llamada de seguimiento: ' + (r.llamada ? 'aceptada' : 'no aceptada')));
+    });
+    app.appendChild(box);
+
+    var ok = el('p', 'ok'); ok.setAttribute('aria-live', 'polite');
+    var acts = el('div', 'acts');
+    var texto = textoResumen(r);
+    if (navigator.share) {
+      var bs = el('button', 'btn main', 'Compartir o enviarme el resumen'); bs.type = 'button';
+      bs.addEventListener('click', function () { navigator.share({ title: 'Resumen de mi encuesta', text: texto }).catch(function () {}); });
+      acts.appendChild(bs);
+    }
+    var bc = el('button', 'btn' + (navigator.share ? '' : ' main'), 'Copiar resumen'); bc.type = 'button';
+    bc.addEventListener('click', function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function () { ok.textContent = 'Resumen copiado.'; }, function () { ok.textContent = 'No se pudo copiar; use el botón de guardar en PDF.'; });
+      } else { ok.textContent = 'No se pudo copiar; use el botón de guardar en PDF.'; }
+    });
+    acts.appendChild(bc);
+    var bp = el('button', 'btn', 'Imprimir o guardar en PDF'); bp.type = 'button';
+    bp.addEventListener('click', function () { window.print(); });
+    acts.appendChild(bp);
+    app.appendChild(acts);
+
+    var mailSec = el('div', 'sum-sec no-print');
+    mailSec.appendChild(el('div', 'sum-label', 'Enviarlo a su correo'));
+    mailSec.appendChild(el('p', 'q-help', 'Se abre su aplicación de correo con el resumen listo; solo presione enviar. Esta dirección no se guarda.'));
+    var mail = el('div', 'mail');
+    var mi = document.createElement('input'); mi.type = 'email'; mi.className = 'field'; mi.id = 'correoResumen'; mi.placeholder = 'su@correo.com';
+    mi.autocomplete = 'email'; mi.setAttribute('aria-label', 'Correo para enviar el resumen'); mi.value = state.correo || '';
+    var bm = el('button', 'btn', 'Abrir correo'); bm.type = 'button';
+    bm.addEventListener('click', function () {
+      var to = mi.value.trim();
+      if (to && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) { ok.textContent = 'Revise la dirección de correo.'; return; }
+      location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent('Resumen de mi encuesta de habilidades blandas') + '&body=' + encodeURIComponent(texto);
+      ok.textContent = 'Si no se abrió su correo, use "Copiar resumen".';
+    });
+    mail.appendChild(mi); mail.appendChild(bm); mailSec.appendChild(mail);
+    app.appendChild(mailSec);
+    app.appendChild(ok);
+
+    app.appendChild(el('p', 'note no-print', 'El resumen queda guardado solo en este navegador. Si vuelve a abrir el enlace desde este mismo dispositivo, lo encontrará aquí.'));
+    var borrar = el('button', 'linkbtn', 'Borrar el resumen de este dispositivo'); borrar.type = 'button';
+    borrar.addEventListener('click', function () { state.resumen = null; state.correo = ''; save(); render(); });
+    app.appendChild(borrar);
   }
 
   render();
